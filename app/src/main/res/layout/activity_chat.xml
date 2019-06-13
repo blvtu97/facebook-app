@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/custom_background_chat"
+    tools:context=".activity.ChatActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolBarChat"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:background="@drawable/custom_background_toolbar"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <!--Receiver profile picture-->
+        <com.blogspot.atifsoftwares.circularimageview.CircularImageView
+            android:id="@+id/circularProfile"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_user_anonymous" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:orientation="horizontal"
+            android:gravity="right"
+            android:weightSum="10"
+            android:layout_marginLeft="20dp">
+
+        <LinearLayout
+            android:layout_weight="4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <!--Receiver name-->
+            <TextView
+                android:id="@+id/txtName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Name"
+                android:textSize="18sp"
+                android:textColor="#ffff"
+                android:textStyle="bold"/>
+
+            <!--Receiver status is online or offline-->
+            <TextView
+                android:id="@+id/txtStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="online"
+                android:textSize="12sp"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_weight="6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageButton
+                    android:layout_weight="3"
+                    android:id="@+id/btnPhoneCall"
+                    android:layout_gravity="center"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:background="@null"
+                    android:src="@drawable/ic_phone_call"/>
+
+                <ImageButton
+                    android:layout_weight="3"
+                    android:id="@+id/btnVideoCall"
+                    android:layout_gravity="center"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@null"
+                    android:src="@drawable/ic_video_call"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </android.support.v7.widget.Toolbar>
+
+    <!--RecyclerView-->
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerViewChats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/toolBarChat"
+        android:layout_above="@id/typingLayout"/>
+
+    <LinearLayout
+        android:id="@+id/typingLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_above="@id/chatLayout"
+        android:background="@null">
+
+        <nguyenhoangthinh.com.socialproject.widgets.TypingVisualizer
+            android:id="@+id/typingVisualizer"
+            android:layout_width="20dp"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp" />
+        <TextView
+            android:text=" Typing..."
+            android:textSize="16sp"
+            android:layout_gravity="center"
+            android:textStyle="italic"
+            android:textColor="#00B0FF"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+    <!--Send message edit text and button in layout-->
+    <LinearLayout
+        android:id="@+id/chatLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#ffff"
+        android:gravity="center"
+        android:orientation="horizontal">
+        <!--EditText: input message-->
+        <EditText
+            android:id="@+id/edtMessage"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="Start typing"
+            android:inputType="textCapSentences|textMultiLine"
+            android:padding="10dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+
+        <!--Button: send message-->
+        <ImageButton
+            android:id="@+id/btnSend"
+            android:background="@null"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_send"/>
+    </LinearLayout>
+</RelativeLayout>

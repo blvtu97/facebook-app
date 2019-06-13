@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="20dp"
+    tools:context=".activity.RegisterActivity">
+
+    <!--Register label-->
+    <TextView
+        android:text="Register"
+        android:padding="10dp"
+        android:textSize="20sp"
+        android:textAllCaps="false"
+        android:textAlignment="center"
+        android:background="#4E69A2"
+        android:textColor="#9DACCB"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!--Input email-->
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/titleEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true">
+        <EditText
+            android:id="@+id/edtEmail"
+            android:inputType="textEmailAddress"
+            android:hint="Email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </android.support.design.widget.TextInputLayout>
+
+    <!--Input password-->
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/titlePassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/titleEmail"
+        android:layout_marginTop="5dp"
+        app:passwordToggleEnabled="true">
+        <!--Input password-->
+        <EditText
+            android:id="@+id/edtPassword"
+            android:inputType="textPassword"
+            android:hint="Password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            />
+    </android.support.design.widget.TextInputLayout>
+
+    <!--Retype password-->
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/titlePasswordRetype"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/titlePassword"
+        android:layout_marginTop="5dp"
+        app:passwordToggleEnabled="true">
+        <!--Input password-->
+        <EditText
+            android:id="@+id/edtPasswordRetype"
+            android:inputType="textPassword"
+            android:hint="Retype password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            />
+    </android.support.design.widget.TextInputLayout>
+
+    <!--Register-->
+    <Button
+        android:id="@+id/btnRegisterAccount"
+        android:text="Register"
+        android:textAllCaps="false"
+        android:background="#5890FF"
+        android:textColor="#ffff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:layout_below="@id/titlePasswordRetype"/>
+</RelativeLayout>

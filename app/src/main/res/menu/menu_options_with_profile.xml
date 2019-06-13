@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/itemAddFriend"
+        android:title="Add Friend"
+        android:icon="@drawable/ic_add_friend">
+    </item>
+
+    <item
+        android:id="@+id/itemFollow"
+        android:title="Follow"
+        android:icon="@drawable/ic_follow_off"/>
+
+    <item
+        android:id="@+id/itemMessage"
+        android:title="Message"
+        android:icon="@drawable/ic_message"/>
+
+    <item
+        android:id="@+id/itemMore"
+        android:title="More"
+        android:icon="@drawable/ic_more"/>
+</menu>

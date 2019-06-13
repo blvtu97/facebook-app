@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="#CDEFF7">
+
+
+        <com.blogspot.atifsoftwares.circularimageview.CircularImageView
+            android:layout_gravity="center"
+            android:id="@+id/circularAvatar"
+            android:padding="10dp"
+            android:layout_width="65dp"
+            android:layout_height="65dp"
+            android:src="@drawable/ic_user_anonymous"/>
+
+        <LinearLayout
+            android:weightSum="12"
+            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_marginStart="5dp"
+                android:layout_weight="10"
+                android:gravity="left"
+                android:layout_gravity="center"
+                android:id="@+id/txtUserName"
+                android:padding="2dp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="User Name"
+                android:textSize="15sp"
+                android:textColor="#090909"
+                android:layout_marginLeft="5dp" />
+
+            <Button
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:background="@drawable/custom_button_confirm"
+                android:id="@+id/btnConfirm"
+                android:textAllCaps="false"
+                android:layout_width="80dp"
+                android:layout_height="35dp"
+                android:text="Confirm"/>
+
+            <Button
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/custom_button_delete"
+                android:id="@+id/btnDelete"
+                android:textAllCaps="false"
+                android:layout_weight="1"
+                android:layout_width="80dp"
+                android:layout_height="35dp"
+                android:text="Delete"
+                android:layout_marginLeft="10dp" />
+        </LinearLayout>
+
+    </LinearLayout>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#ffff"
+    tools:context=".fragments.ProfileFragment">
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!--Floating action button-->
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/floatingActionButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_margin="10dp"
+            android:src="@drawable/ic_edit_white"/>
+
+        <ImageView
+            android:id="@+id/imgCoverPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:scaleType="fitXY"
+            android:background="@drawable/custom_background_profile2">
+        </ImageView>
+
+        <LinearLayout
+            android:id="@+id/linearLayoutProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="80dp">
+            <ImageView
+                android:layout_gravity="center"
+                android:id="@+id/imgAvatar"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:background="#0011C6"
+                android:padding="5dp"
+                android:src="@drawable/ic_add_image" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:gravity="center"
+                    android:id="@+id/txtName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginTop="5dp"
+                    android:textColor="#000000"
+                    android:text="Name"
+                    android:textSize="20sp"/>
+
+                <TextView
+                    android:gravity="center"
+                    android:id="@+id/txtEmail"
+                    android:text="Mail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginLeft="5dp"
+                    android:textColor="#000000"
+                    />
+
+                <TextView
+                    android:gravity="center"
+                    android:text="Phone"
+                    android:id="@+id/txtPhone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginLeft="5dp"
+                    android:textColor="#000000"
+                    />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <!--Bottom navigation: show menu-->
+        <android.support.design.widget.BottomNavigationView
+            android:layout_marginTop="5dp"
+            android:layout_below="@id/linearLayoutProfile"
+            android:backgroundTint="#ffff"
+            android:id="@+id/navigationView"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            app:labelVisibilityMode="labeled"
+            android:background="@color/white"
+            app:menu="@menu/menu_options_with_profile"/>
+    </RelativeLayout>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerViewProfiles"
+            android:layout_below="@id/relativeLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            ></android.support.v7.widget.RecyclerView>
+
+</RelativeLayout>

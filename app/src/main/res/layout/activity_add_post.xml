@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:weightSum="10"
+    android:orientation="vertical"
+    android:background="#ffff"
+    >
+
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbarAddPost"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@drawable/custom_background_profile2"/>
+
+        <com.sothree.slidinguppanel.SlidingUpPanelLayout
+            android:id="@+id/frame_music_contains_2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="bottom">
+
+            <RelativeLayout
+                android:id="@+id/framePostLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:id="@+id/linearUser"
+                    android:layout_alignParentTop="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.blogspot.atifsoftwares.circularimageview.CircularImageView
+                        android:layout_marginStart="5dp"
+                        android:layout_marginTop="5dp"
+                        android:id="@+id/circularAvatar"
+                        android:padding="20dp"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:src="@drawable/ic_user_anonymous"
+                        android:layout_marginLeft="5dp" />
+
+                    <LinearLayout
+                        android:paddingLeft="5dp"
+                        android:layout_gravity="center"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/txtUserName"
+                            android:padding="2dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="User Name"
+                            android:textSize="18sp"
+                            android:textColor="#090909"/>
+
+                        <LinearLayout
+                            android:id="@+id/linearChoosePrivacy"
+                            android:background="@drawable/custom_button_private"
+                            android:padding="5dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+                            <ImageView
+                                android:id="@+id/imgPrivacy"
+                                android:layout_gravity="center"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_public"/>
+                            <TextView
+                                android:id="@+id/txtPrivacy"
+                                android:layout_gravity="center"
+                                android:paddingLeft="5dp"
+                                android:paddingStart="5dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Public"/>
+
+                            <Spinner
+                                android:layout_gravity="center"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+                            </Spinner>
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <EditText
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="5dp"
+                    android:gravity="top|left"
+                    android:id="@+id/edtStatus"
+                    android:textSize="20sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="What's on your mind ?"
+                    android:layout_below="@id/linearUser"
+                    android:layout_marginLeft="5dp"
+                    android:background="@android:color/transparent"/>
+                <ImageView
+                    android:padding="20dp"
+                    android:layout_marginTop="15dp"
+                    android:id="@+id/imgStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@id/edtStatus"
+                   android:visibility="gone"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <include layout="@layout/sliding_panel_post_options" />
+            </RelativeLayout>
+
+        </com.sothree.slidinguppanel.SlidingUpPanelLayout>
+
+
+</LinearLayout>

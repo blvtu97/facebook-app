@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">SocialProject</string>
+    <string name="agora_app_id">55fe68aee14c461cbc0adf9c47098a89</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
+    <!-- TODO: Choose privacy when user post status-->
+    <string name="about_privacy">Your post will show up in News Feed, on your profile and in search results</string>
+</resources>

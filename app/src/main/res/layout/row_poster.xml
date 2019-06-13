@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_alignParentTop="true"
+        android:id="@+id/linearStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <ImageView
+            android:id="@+id/btnViewProfile"
+            android:layout_gravity="center"
+            android:padding="7dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/ic_user_anonymous"
+            android:background="@null"/>
+        <EditText
+            android:id="@+id/btnPostStatus"
+            android:layout_marginStart="10dp"
+            android:layout_gravity="center"
+            android:background="@drawable/custom_button_private"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="   What's on your mind ?    "
+            android:layout_marginLeft="10dp" />
+        <ImageView
+            android:id="@+id/btnPickGallery"
+            android:layout_marginStart="20dp"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_photo_status"
+            android:layout_marginLeft="10dp" />
+    </LinearLayout>
+</RelativeLayout>

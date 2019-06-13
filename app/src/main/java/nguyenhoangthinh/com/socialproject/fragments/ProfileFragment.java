@@ -36,6 +36,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -59,9 +60,10 @@ import nguyenhoangthinh.com.socialproject.activity.ChatActivity;
 import nguyenhoangthinh.com.socialproject.activity.DashboardActivity;
 import nguyenhoangthinh.com.socialproject.activity.MainActivity;
 import nguyenhoangthinh.com.socialproject.R;
-import nguyenhoangthinh.com.socialproject.adapters.AdapterPost;
 import nguyenhoangthinh.com.socialproject.adapters.AdapterProfiles;
 import nguyenhoangthinh.com.socialproject.models.Post;
+import nguyenhoangthinh.com.socialproject.models.User;
+import nguyenhoangthinh.com.socialproject.services.SocialNetwork;
 import nguyenhoangthinh.com.socialproject.services.SocialServices;
 import nguyenhoangthinh.com.socialproject.services.SocialStateListener;
 
@@ -201,8 +203,19 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         txtPhone             = view.findViewById(R.id.txtPhone);
         progressDialog       = new ProgressDialog(getActivity());
 
+        //Sự kiện click floating point action
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showEditProfileDialog();
+            }
+        });
+
         uid = mUser.getUid();
-        getInfoUser(uid);
+        //getInfoUser(uid);
+
+        //Optimize code
+        getInfoUser2(uid);
 
         // Tạm thời ẩn đi navigation view
         bottomNavigationView.setVisibility(View.GONE);
@@ -211,9 +224,105 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         bottomNavigationView.setOnNavigationItemSelectedListener(selectedListener);
 
         postList = new ArrayList<>();
-        loadPosts();
+        //loadPosts();
 
+        //Optimize code
+        loadPosts2();
         return view;
+    }
+
+    private void loadPosts2() {
+        postList.clear();
+        List<Post> pl = SocialNetwork.getPostListCurrent();
+        if (uid.equals(mUser.getUid())) {
+            // Nếu thông tin trùng với người đăng nhập và bài post do người dùng đăng
+            // Nhận cái post của người dùng
+            for (Post p1 : pl) {
+                if (uid.equals(p1.getUid())) {
+                    postList.add(p1);
+                }
+            }
+        } else {
+            // Tìm người viết bài này
+            for (Post p2 : pl) {
+                if (uid.equals(p2.getUid())) {
+                    User user = SocialNetwork.getUser(uid);
+                    // Kiểm tra trong danh sách bạn bè của người này có chứa uid của người dùng không
+                    if (user.getFriends().contains(mUser.getUid())) {
+                        // Kiểm tra nếu đó không phải là lời yêu cầu kết bạn
+                        if (!isRequestAddFriend(user.getFriends())) {
+                            postList.add(p2);
+                        }
+                    }
+                }
+            }
+        }
+
+        adapterProfiles = new AdapterProfiles(getActivity(), postList);
+        recyclerViewProfiles.setAdapter(adapterProfiles);
+        adapterProfiles.notifyDataSetChanged();
+        if (postList.size() > 0) {
+            recyclerViewProfiles.smoothScrollToPosition(postList.size() - 1);
+        }
+
+        relativeLayout.setVisibility(View.VISIBLE);
+        relativeLayout.setFocusable(true);
+    }
+
+    @SuppressLint("RestrictedApi")
+    private void getInfoUser2(String uid) {
+        // Nếu thông tin người dùng chứa uid này khác với người đăng nhập hiện tại
+        // thì đó là một người khác. Ta hiện bottom navigation view
+        if (!uid.equals(mUser.getUid())) {
+            bottomNavigationView.setVisibility(View.VISIBLE);
+            floatingActionButton.setVisibility(View.GONE);
+        } else {
+            bottomNavigationView.setVisibility(View.GONE);
+            floatingActionButton.setVisibility(View.VISIBLE);
+        }
+
+        User user      = SocialNetwork.getUser(uid);
+        String name    = user.getName();
+        String email   = user.getEmail();
+        String phone   = user.getPhone();
+        String image   = user.getImage();
+        String cover   = user.getCover();
+        String follow  = user.getFollow();
+        String friends = user.getFriends();
+
+        if (follow.contains(mUser.getUid())) {
+            MenuItem menuItem =
+                    bottomNavigationView.getMenu().findItem(R.id.itemFollow);
+            menuItem.setTitle("Following");
+        }
+
+        if (friends.contains(mUser.getUid())) {
+            MenuItem menuItem =
+                    bottomNavigationView.getMenu().findItem(R.id.itemAddFriend);
+            if (!isRequestAddFriend(friends)) {
+                menuItem.setTitle("Friend");
+            } else {
+                menuItem.setTitle("Requested");
+            }
+        }
+        //Thiết lập dữ liệu
+        txtName.setText(name);
+        txtEmail.setText(email);
+        txtPhone.setText(phone);
+
+        try {
+            //Thiết lập image nếu nhận được hình ảnh từ firebase storage
+            Glide.with(getActivity()).load(image).placeholder(R.drawable.ic_tab_user).into(imgAvatar);
+        } catch (Exception e) {
+
+        }
+        try {
+            //Thiết lập image nếu nhận được hình ảnh từ firebase storage
+            Glide.with(getActivity()).load(image).into(imgAvatar);
+
+        } catch (Exception e) {
+        }
+
     }
 
     @Override
@@ -221,6 +330,9 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         super.onResume();
         if(adapterProfiles != null){
             recyclerViewProfiles.setAdapter(adapterProfiles);
+        }
+        if(SocialNetwork.isDarkMode){
+            setDarkMode();
         }
     }
 
@@ -282,8 +394,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
                         case R.id.itemFollow:
                             //Xử lý follow
                             menuItem.setIcon(R.drawable.ic_follow_on);
-                            followPerson(uid);
-                            menuItem.setTitle("Following");
+                            followPerson(uid,menuItem);
                             return true;
                         case R.id.itemMessage:
                             //Xử lý chat
@@ -308,7 +419,6 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
      */
     private void addFriends(final String uid, final MenuItem menuItem) {
 
-        menuItem.setTitle("Requested");
         //Thêm chính người dùng hiện tại vào danh sách bạn của người khác của người khác
         databaseReference.orderByChild("uid").equalTo(uid)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -321,17 +431,45 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
 
                             //Nếu danh sách bạn của người khác đang có chứa người dùng này
                             if (friendArr.contains(mUser.getUid())) {
+                                menuItem.setTitle("Add Friend");
                                 //Nếu đang gửi yêu cầu, cho phép hủy
                                 if (isRequestAddFriend(friendArr)) {
 
-                                    menuItem.setTitle("Add Friend");
                                     String newFriendArr = friendArr
-                                            .replace("@"+mUser.getUid() + ",",
-                                                            "");
+                                            .replace("@" + mUser.getUid() + ",",
+                                                    "");
                                     hashMap.put("friends", newFriendArr);
                                     ds.getRef().updateChildren(hashMap);
+                                }else{
+                                    // Đã là bạn thì xóa
+                                    String newFriendArr = friendArr
+                                            .replace(mUser.getUid() + ",",
+                                                    "");
+                                    hashMap.put("friends", newFriendArr);
+                                    ds.getRef().updateChildren(hashMap);
+
+                                    mReference.orderByChild("uid").equalTo(mUser.getUid())
+                                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                    for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                                                        String frs = ds.child("friends").getValue().toString();
+                                                        frs = frs.replace(uid+",","");
+                                                        HashMap<String,Object> hs = new HashMap<>();
+                                                        hashMap.put("friends",frs);
+                                                        ds.getRef().updateChildren(hashMap);
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                }
+                                            });
                                 }
-                            } else {
+                            }else {
+                                //Thêm một yêu cầu kết bạn
+                                menuItem.setTitle("Requested");
                                 String fr = ds.child("friends").getValue().toString();
                                 HashMap<String, Object> hm = new HashMap<>();
                                 fr += "@" + mUser.getUid() + ",";
@@ -346,6 +484,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
 
                     }
                 });
+
     }
 
     private boolean isRequestAddFriend(String friends) {
@@ -362,7 +501,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
      * @param uid , uid của người cần follow
      *            Hàm follow theo uid của người dùng
      */
-    private void followPerson(final String uid) {
+    private void followPerson(final String uid, final MenuItem menuItem) {
 
         //Thêm chính người dùng hiện tại vào danh sách follow của người khác
        databaseReference.orderByChild("uid").equalTo(uid)
@@ -372,7 +511,13 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
                for(DataSnapshot ds: dataSnapshot.getChildren()){
                    String follow = ds.child("follow").getValue().toString();
                    HashMap<String,Object> hashMap = new HashMap<>();
-                   follow+= mUser.getUid()+",";
+                   if(follow.contains(mUser.getUid())){
+                       menuItem.setTitle("Follow");
+                       follow = follow.replace(mUser.getUid()+",","");
+                   }else {
+                       follow += mUser.getUid() + ",";
+                       menuItem.setTitle("Following");
+                   }
                    hashMap.put("follow",follow);
                    ds.getRef().updateChildren(hashMap);
                }
@@ -463,13 +608,6 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
             }
         });
 
-        //Sự kiện click floating point action
-        floatingActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showEditProfileDialog();
-            }
-        });
     }
 
     /**
@@ -873,28 +1011,50 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
 
     @Override
     public void onMetaChanged() {
+        loadPosts2();
+        updateProfile();
+    }
 
+    private void updateProfile() {
+        if(uid != null){
+            User user = SocialNetwork.getUser(uid);
+            String friend = user.getFriends();
+            if(friend.contains(mUser.getUid())){
+                if(isRequestAddFriend(friend)){
+                    bottomNavigationView.getMenu().findItem(R.id.itemAddFriend).setTitle("Requested");
+                }else{
+                    bottomNavigationView.getMenu().findItem(R.id.itemAddFriend).setTitle("Friend");
+                }
+            }else{
+                bottomNavigationView.getMenu().findItem(R.id.itemAddFriend).setTitle("Add Friend");
+            }
+        }
     }
 
     @Override
     public void onNavigate(String type, String idType) {
         if(type.equals(SocialServices.VIEW_PROFILE)){
             uid = idType;
-            getInfoUser(uid);
-            loadPosts();
+            getInfoUser2(uid);
+            loadPosts2();
+            updateProfile();
         }
     }
 
     @Override
     public void onDarkMode(boolean change) {
-        if(change) {
-            recyclerViewProfiles.setBackgroundColor(Color.BLACK);
-            floatingActionButton.setBackgroundColor(Color.BLACK);
-            linearLayout.setBackgroundColor(Color.BLACK);
-            txtName.setTextColor(Color.WHITE);
-            txtEmail.setTextColor(Color.WHITE);
-            txtPhone.setTextColor(Color.WHITE);
-            adapterProfiles.changeDarkMode();
+        if (change) {
+            setDarkMode();
         }
+    }
+
+    private void setDarkMode(){
+        recyclerViewProfiles.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+        floatingActionButton.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+        linearLayout.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+        txtName.setTextColor(Color.WHITE);
+        txtEmail.setTextColor(Color.WHITE);
+        txtPhone.setTextColor(Color.WHITE);
+        adapterProfiles.changeDarkMode();
     }
 }

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -352,7 +353,9 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
         for(int i = 0;i<holderList.size();i++){
             holderList.get(i)
                     .relativeNewsFeedLayout
-                    .setBackgroundColor(R.drawable.custom_background_dark_mode_main);
+                    .setBackground(ContextCompat.getDrawable(mContext,
+                            R.drawable.custom_background_dark_mode_main));
+
             holderList.get(i).txtCmtCount.setTextColor(Color.WHITE);
             holderList.get(i).txtLikeCount.setTextColor(Color.WHITE);
             holderList.get(i).txtLikePost.setTextColor(Color.WHITE);
@@ -361,7 +364,6 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
             holderList.get(i).txtTime.setTextColor(Color.WHITE);
             holderList.get(i).txtShare.setTextColor(Color.WHITE);
             holderList.get(i).txtCommentPost.setTextColor(Color.WHITE);
-            holderList.get(i).relativeNewsFeedLayout.setBackgroundColor(Color.BLACK);
             Picasso.get().load(R.drawable.ic_like_dark_off).into(holderList.get(i).btnLike);
             Picasso.get().load(R.drawable.ic_comment_dark).into(holderList.get(i).btnComment);
             Picasso.get().load(R.drawable.ic_share_dark).into(holderList.get(i).btnShare);

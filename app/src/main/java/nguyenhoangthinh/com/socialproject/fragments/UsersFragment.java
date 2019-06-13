@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -51,6 +52,7 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
 
     private List<User> userList;
 
+
     public UsersFragment() {
 
     }
@@ -83,7 +85,13 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
     }
 
     private void getAllUsers2() {
-        adapterUser = new AdapterUser(getActivity(),SocialNetwork.getUserListCurrent());
+        userList.clear();
+        for(User us: SocialNetwork.getUserListCurrent()){
+            if(!us.getUid().equals(mAuth.getCurrentUser().getUid())){
+                userList.add(us);
+            }
+        }
+        adapterUser = new AdapterUser(getActivity(),userList);
         recyclerViewUsers.setAdapter(adapterUser);
     }
 
@@ -170,6 +178,10 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
         if(adapterUser != null){
             recyclerViewUsers.setAdapter(adapterUser);
         }
+        if(SocialNetwork.isDarkMode){
+            recyclerViewUsers.setBackground(ContextCompat.getDrawable(getActivity(),
+                    R.drawable.custom_background_dark_mode_main));
+        }
     }
 
     /**
@@ -255,7 +267,7 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
 
     @Override
     public void onMetaChanged() {
-
+        getAllUsers2();
     }
 
     @Override
@@ -266,7 +278,8 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
     @Override
     public void onDarkMode(boolean change) {
         if(change){
-            recyclerViewUsers.setBackgroundColor(Color.BLACK);
+            recyclerViewUsers.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+
         }
     }
 

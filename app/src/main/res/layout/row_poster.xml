@@ -15,9 +15,12 @@
             android:padding="7dp"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:src="@drawable/ic_user_anonymous"
+            android:src="@drawable/ic_tab_user"
             android:background="@null"/>
         <EditText
+            android:focusable="false"
+            android:cursorVisible="false"
+            android:enabled="true"
             android:id="@+id/btnPostStatus"
             android:layout_marginStart="10dp"
             android:layout_gravity="center"
@@ -27,6 +30,7 @@
             android:hint="   What's on your mind ?    "
             android:layout_marginLeft="10dp" />
         <ImageView
+            android:background="#76FF03"
             android:id="@+id/btnPickGallery"
             android:layout_marginStart="20dp"
             android:layout_gravity="center"

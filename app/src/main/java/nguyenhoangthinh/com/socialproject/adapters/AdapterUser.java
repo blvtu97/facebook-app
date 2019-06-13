@@ -1,7 +1,10 @@
 package nguyenhoangthinh.com.socialproject.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +12,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -22,6 +27,8 @@ public class AdapterUser extends RecyclerView.Adapter<AdapterUser.Holder> {
     private Context mContext;
 
     private List<User> userList;
+
+    private List<Holder> holderList = new ArrayList<>();
 
     public AdapterUser(Context mContext, List<User> userList) {
         this.mContext = mContext;
@@ -80,12 +87,24 @@ public class AdapterUser extends RecyclerView.Adapter<AdapterUser.Holder> {
 
         TextView txtName, txtEmail;
 
+        CardView cardView;
+
         public Holder(@NonNull View itemView) {
             super(itemView);
             imgAvatar = itemView.findViewById(R.id.circularAvatar);
             txtEmail  = itemView.findViewById(R.id.txtEmail);
             txtName   = itemView.findViewById(R.id.txtUserName);
+            cardView  = itemView.findViewById(R.id.cardView);
         }
     }
 
+    public void changeDarkMode() {
+        for(int i = 0;i<holderList.size();i++){
+            holderList.get(i).cardView
+                    .setBackground(ContextCompat.getDrawable(mContext
+                            ,R.drawable.custom_background_dark_mode_main));
+            holderList.get(i).txtEmail.setTextColor(Color.WHITE);
+            holderList.get(i).txtName.setTextColor(Color.WHITE);
+        }
+    }
 }

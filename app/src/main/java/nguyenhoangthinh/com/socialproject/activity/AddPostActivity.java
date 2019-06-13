@@ -100,8 +100,8 @@ public class AddPostActivity extends AppCompatActivity {
     private void initializeUI(){
         toolbar = findViewById(R.id.toolbarAddPost);
         setSupportActionBar(toolbar);
-        toolbar.setTitle("");
-        toolbar.setBackgroundColor(R.drawable.custom_background_profile2);
+        toolbar.setBackgroundResource(R.drawable.custom_background_profile2);
+        getSupportActionBar().setTitle("");
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 

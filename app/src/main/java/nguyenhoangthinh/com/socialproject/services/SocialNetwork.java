@@ -17,48 +17,18 @@ public class SocialNetwork {
 
     private static Context mContext = null;
 
-    private static ServiceBinder serviceBinder = null;
-
     public static SocialServices socialServices = null;
 
-    private static Intent intentService = null;
+    public static Intent intentService = null;
 
-    public static void bindToService(Context context, ServiceConnection serviceConnection) {
+    public static void startService(Context context, ServiceConnection serviceConnection) {
         if(mContext == null) mContext = context;
-
         if(intentService == null) {
-
             intentService = new Intent(context, SocialServices.class);
             context.startService(intentService);
-
-            serviceBinder = new ServiceBinder(context, serviceConnection);
-            context.bindService(intentService, serviceBinder, Context.BIND_AUTO_CREATE);
-
         }
     }
 
-    //Kế thừa ServiceConnection
-    public static class ServiceBinder implements ServiceConnection {
-
-        private ServiceConnection mCallback;
-
-        private Context mContext;
-
-        public ServiceBinder(Context context, ServiceConnection callback) {
-            mCallback = callback;
-            mContext = context;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            socialServices =((SocialServices.LocalBinder)service).getService();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName className) {
-
-        }
-    }
 
     public static void navigateProfile(String uid){
         socialServices.senBroadcastToNavigateUid(uid);
@@ -84,6 +54,10 @@ public class SocialNetwork {
         return socialServices.getUserListCurrent();
     }
 
+    public static List<User> getUserListCurrentExcept(String uid){
+        return socialServices.getUserListCurrent();
+    }
+
     public static User getUser(String uid){
         return socialServices.findUserById(uid);
     }
@@ -97,10 +71,18 @@ public class SocialNetwork {
     }
 
     public static String findImageById(String uid){
-        return socialServices.findName(uid);
+        return socialServices.findImage(uid);
     }
 
     public static void clearUserListCurrent(){
         socialServices.clearUserList();
+    }
+
+    public static List<Post> getPostListCurrent(){
+        return socialServices.getPostListCurrent();
+    }
+
+    public static boolean isReceiveDataSuccessfully(){
+        return  socialServices.isReceiveDataSuccessfully();
     }
 }

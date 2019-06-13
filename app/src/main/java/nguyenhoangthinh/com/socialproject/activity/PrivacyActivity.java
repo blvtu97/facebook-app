@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.RadioButton;
 
@@ -16,6 +17,8 @@ public class PrivacyActivity extends AppCompatActivity implements View.OnClickLi
 
     private String typeDisplay = "Public";
 
+    private Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,11 +27,12 @@ public class PrivacyActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void initializeUI(){
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("Select Privacy");
-        actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.custom_background_profile));
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setDisplayShowHomeEnabled(true);
+        toolbar = findViewById(R.id.toolbarAddPost);
+        setSupportActionBar(toolbar);
+        toolbar.setBackgroundResource(R.drawable.custom_background_profile2);
+        getSupportActionBar().setTitle("");
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         rdPublic = findViewById(R.id.rdPublic);
         rdFriendsAll = findViewById(R.id.rdFriendsAll);

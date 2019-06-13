@@ -48,10 +48,6 @@ public class AdapterComment extends RecyclerView.Adapter<AdapterComment.Holder> 
         this.commentList = commentList;
     }
 
-    public String getpId() {
-        return pId;
-    }
-
     public void setpId(String pId) {
         this.pId = pId;
     }

@@ -35,6 +35,8 @@ import nguyenhoangthinh.com.socialproject.activity.MainActivity;
 import nguyenhoangthinh.com.socialproject.R;
 import nguyenhoangthinh.com.socialproject.adapters.AdapterPost;
 import nguyenhoangthinh.com.socialproject.models.Post;
+import nguyenhoangthinh.com.socialproject.models.User;
+import nguyenhoangthinh.com.socialproject.services.SocialNetwork;
 import nguyenhoangthinh.com.socialproject.services.SocialStateListener;
 
 /**
@@ -80,9 +82,44 @@ public class HomeFragment extends Fragment implements SocialStateListener {
 
         // Init post list
         postList = new ArrayList<>();
-        loadPosts();
+        //loadPosts();
 
+        //optimisize code
+        loadPosts2();
         return view;
+    }
+
+    private void loadPosts2() {
+        postList.clear();
+        List<Post> pl = SocialNetwork.getPostListCurrent();
+        for (Post p : pl) {
+            if (!p.getpMode().equals("Only me")) {
+                // Tìm kiếm người đăng bài post này, kiểm tra xem trong danh sách friends của người
+                // đăng bài post này có chứa uid của dùng đăng nhập hiện tại hay không
+
+                // Lấy ra thông tin người đăng bài post này
+                User user = SocialNetwork.getUser(p.getUid());
+
+                // Kiểm tra trong danh sách bạn bè của người này có chứa uid của người dùng không
+                if (user.getFriends().contains(mUser.getUid())) {
+                    // Kiểm tra nếu đó không phải là lời yêu cầu kết bạn
+                    if (!isRequestAddFriend(user.getFriends())) {
+                        postList.add(p);
+                    }
+                    // Là chính người dùng hiện tại
+                } else if (user.getUid().equals(mUser.getUid())) {
+                    postList.add(p);
+                }
+            }
+        }
+
+        Post p = new Post();
+        p.setUid(mUser.getUid());
+        postList.add(p);
+
+        adapterPost = new AdapterPost(getActivity(), postList);
+        recyclerViewPosts.setAdapter(adapterPost);
+        adapterPost.notifyDataSetChanged();
     }
 
     @Override
@@ -90,6 +127,11 @@ public class HomeFragment extends Fragment implements SocialStateListener {
         super.onResume();
         if(adapterPost != null){
             recyclerViewPosts.setAdapter(adapterPost);
+        }
+        if(SocialNetwork.isDarkMode){
+            setDarkMode();
+        }else{
+            setLightMode();
         }
     }
 
@@ -107,8 +149,6 @@ public class HomeFragment extends Fragment implements SocialStateListener {
                     Post post = ds.getValue(Post.class);
                     newsFeedAlgorithm(post);
                 }
-
-                priorityNewsFeed();
 
                 // Thêm một mới post ảo để set adapter thành nơi cho người dùng đăng post
                 Post p = new Post();
@@ -130,7 +170,6 @@ public class HomeFragment extends Fragment implements SocialStateListener {
             }
         });
     }
-
 
     /**
      * Hàm sắp xếp bài viết
@@ -305,7 +344,7 @@ public class HomeFragment extends Fragment implements SocialStateListener {
 
     @Override
     public void onMetaChanged() {
-
+        loadPosts2();
     }
 
     @Override
@@ -316,9 +355,17 @@ public class HomeFragment extends Fragment implements SocialStateListener {
     @Override
     public void onDarkMode(boolean change) {
         if(change){
-            recyclerViewPosts.setBackgroundColor(Color.BLACK);
-            adapterPost.changeDarkMode();
+            setDarkMode();
         }
     }
 
+    private void setDarkMode(){
+        recyclerViewPosts.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+        adapterPost.changeDarkMode();
+    }
+
+    private void setLightMode(){
+        recyclerViewPosts.setBackgroundColor(Color.WHITE);
+        adapterPost.changeDarkMode();
+    }
 }

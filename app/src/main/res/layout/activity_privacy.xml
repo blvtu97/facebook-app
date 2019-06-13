@@ -11,6 +11,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbarAddPost"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@drawable/custom_background_profile2"/>
         <TextView
             android:padding="5dp"
             android:textStyle="bold"

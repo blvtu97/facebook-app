@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -28,6 +29,7 @@ import nguyenhoangthinh.com.socialproject.R;
 import nguyenhoangthinh.com.socialproject.activity.DashboardActivity;
 import nguyenhoangthinh.com.socialproject.adapters.AdapterNotification;
 import nguyenhoangthinh.com.socialproject.models.User;
+import nguyenhoangthinh.com.socialproject.services.SocialNetwork;
 import nguyenhoangthinh.com.socialproject.services.SocialStateListener;
 
 /**
@@ -83,48 +85,35 @@ public class NotificationFragment extends Fragment implements SocialStateListene
      */
     private void getNotifications() {
 
-        DatabaseReference databaseReference
-                = FirebaseDatabase.getInstance().getReference("User");
-        databaseReference.orderByChild("uid").equalTo(mUser.getUid())
-                .addValueEventListener(new ValueEventListener() {
+    FirebaseDatabase.getInstance()
+            .getReference("User")
+            .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        userList.clear();
                         for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                            final String friendArr = ds.child("friends").getValue().toString();
-                            if (friendArr.contains("@")) {
+                            User user = ds.getValue(User.class);
+                            // Nhận danh sách bạn của user
+                            String friends = user.getFriends();
 
-                                FirebaseDatabase.getInstance().getReference("User")
-                                        .addValueEventListener(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                                userList.clear();
-                                                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                                                    User user = ds.getValue(User.class);
-                                                    if (friendArr.contains(user.getUid())) {
-                                                        userList.add(user);
-                                                    }
-                                                }
+                            // Kiểm tra xem uset này có phải là người dùng hiện tại hay không
+                            if(user.getUid().equals(mUser.getUid())) {
+                                if (friends.contains("@")) {
+                                    for(User us:SocialNetwork.getUserListCurrent()){
+                                        if(friends.contains(("@"+us.getUid()))){
+                                            userList.add(us);
+                                        }
+                                    }
+                                    txtNotifications.setVisibility(View.GONE);
+                                    adapterNotification =
+                                            new AdapterNotification(getActivity(),
+                                                    userList);
+                                    recyclerViewNotifications
+                                            .setAdapter(adapterNotification);
 
-                                                if (adapterNotification != null) {
-                                                    txtNotifications.setVisibility(View.GONE);
-                                                    adapterNotification.notifyDataSetChanged();
-                                                } else {
-                                                    txtNotifications.setVisibility(View.GONE);
-                                                    adapterNotification =
-                                                            new AdapterNotification(getActivity(),
-                                                                    userList);
-                                                    recyclerViewNotifications
-                                                            .setAdapter(adapterNotification);
-                                                }
-                                            }
-
-                                            @Override
-                                            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                                            }
-                                        });
-                            }else{
-                                txtNotifications.setVisibility(View.VISIBLE);
+                                } else {
+                                    txtNotifications.setVisibility(View.VISIBLE);
+                                }
                             }
                         }
                     }
@@ -150,7 +139,6 @@ public class NotificationFragment extends Fragment implements SocialStateListene
 
     @Override
     public void onMetaChanged() {
-
     }
 
     @Override
@@ -161,7 +149,17 @@ public class NotificationFragment extends Fragment implements SocialStateListene
     @Override
     public void onDarkMode(boolean change) {
         if(change) {
-            frameNotificationLayout.setBackgroundColor(Color.BLACK);
+            frameNotificationLayout
+                    .setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(SocialNetwork.isDarkMode){
+            frameNotificationLayout
+                    .setBackgroundResource(R.drawable.custom_background_dark_mode_main);
         }
     }
 }

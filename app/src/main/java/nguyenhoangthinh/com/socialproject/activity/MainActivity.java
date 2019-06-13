@@ -2,8 +2,13 @@ package nguyenhoangthinh.com.socialproject.activity;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.Handler;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -36,8 +41,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.HashMap;
 
 import nguyenhoangthinh.com.socialproject.R;
+import nguyenhoangthinh.com.socialproject.services.SocialNetwork;
+import nguyenhoangthinh.com.socialproject.services.SocialServices;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private static final int DELAY_TIME = 2000;
 
     private static final int RC_SIGN_IN = 6969;
 
@@ -61,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mapViews();
+        initializeService();
     }
 
     /**
@@ -68,12 +78,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void mapViews() {
 
-        btnLogin          = findViewById(R.id.btnLogin);
-        btnRegister       = findViewById(R.id.btnRegister);
-        edtMail           = findViewById(R.id.edtEmail);
-        edtPassword       = findViewById(R.id.edtPassword);
+        btnLogin = findViewById(R.id.btnLogin);
+        btnRegister = findViewById(R.id.btnRegister);
+        edtMail = findViewById(R.id.edtEmail);
+        edtPassword = findViewById(R.id.edtPassword);
         txtForgotPassword = findViewById(R.id.txtForgotPasword);
-        progressDialog    = new ProgressDialog(this);
+        progressDialog = new ProgressDialog(this);
 
         // Cấu hình để đăng nhập bằng google
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -83,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
         //
 
-        mAuth         = FirebaseAuth.getInstance();
+        mAuth = FirebaseAuth.getInstance();
         btnLoginEmail = findViewById(R.id.btnLoginGmail);
         progressDialog.setMessage("Loading");
 
@@ -100,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(MainActivity.this, RegisterActivity.class));
         } else if (v.getId() == R.id.btnLogin) {
             //Đăng nhập tại đây
-            String email    = edtMail.getText().toString().trim();
+            String email = edtMail.getText().toString().trim();
             String password = edtPassword.getText().toString().trim();
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 edtMail.setError("Invalid email");
@@ -130,14 +140,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             FirebaseUser user = mAuth.getCurrentUser();
-                            startActivity(new Intent(MainActivity.this, DashboardActivity.class));
-                            finish();
+                            // Đợi cho đến khi nhận được tất cả dữ liệu từ fire base
+                            //while (!SocialNetwork.isReceiveDataSuccessfully()) ;
+
+                            new Handler().postDelayed(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            progressDialog.dismiss();
+                                            startActivity(new Intent(MainActivity.this, DashboardActivity.class));
+                                            finish();
+                                        }
+                                    },DELAY_TIME);
+
+
                         } else {
                             // Sign in fails, display a message to the user.
                             Toast.makeText(MainActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
+                            progressDialog.dismiss();
                         }
-                        progressDialog.dismiss();
+
                         // ...
                     }
                 }).addOnFailureListener(new OnFailureListener() {
@@ -242,21 +265,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             FirebaseUser user = mAuth.getCurrentUser();
 
                             //Nếu là tài khoản mới
-                            if(task.getResult().getAdditionalUserInfo().isNewUser()){
+                            if (task.getResult().getAdditionalUserInfo().isNewUser()) {
                                 //Get info user
                                 String email = user.getEmail();
-                                String uid   = user.getUid();
-                                HashMap<Object,String> hashMap = new HashMap<>();
-                                hashMap.put("email",email);
-                                hashMap.put("uid",uid);
-                                hashMap.put("name","");
-                                hashMap.put("onlineStatus","online");
-                                hashMap.put("typingTo","noOne");
-                                hashMap.put("phone","");
-                                hashMap.put("image","");
-                                hashMap.put("cover","");
-                                hashMap.put("friends","");
-                                hashMap.put("follow","");
+                                String uid = user.getUid();
+                                HashMap<Object, String> hashMap = new HashMap<>();
+                                hashMap.put("email", email);
+                                hashMap.put("uid", uid);
+                                hashMap.put("name", "");
+                                hashMap.put("onlineStatus", "online");
+                                hashMap.put("typingTo", "noOne");
+                                hashMap.put("phone", "");
+                                hashMap.put("image", "");
+                                hashMap.put("cover", "");
+                                hashMap.put("friends", "");
+                                hashMap.put("follow", "");
 
                                 FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
                                 //Lưu vào đường dẫn có tên là User
@@ -264,16 +287,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 //Tạo đường dẫn uid, đặt dữ liệu vào database
                                 reference.child(uid).setValue(hashMap);
                             }
-
-                            startActivity(new Intent(MainActivity.this, DashboardActivity.class));
-                            finish();
+                            // Đợi cho đến khi nhận được tất cả dữ liệu từ fire base
+                           // while (!SocialNetwork.isReceiveDataSuccessfully()) ;
+                            new Handler().postDelayed(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            progressDialog.dismiss();
+                                            startActivity(new Intent(MainActivity.this, DashboardActivity.class));
+                                            finish();
+                                        }
+                                    },DELAY_TIME);
                         } else {
                             // If sign in fails, display a message to the user.
                             Toast.makeText(MainActivity.this,
                                     "Failed...",
                                     Toast.LENGTH_SHORT).show();
+                            progressDialog.dismiss();
                         }
-                        progressDialog.dismiss();
+
                     }
                 }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -282,5 +314,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+
+    ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            //((SocialNetwork.ServiceBinder)service).onServiceConnected(name, service);
+            SocialServices.LocalBinder binder = (SocialServices.LocalBinder) service;
+            SocialNetwork.socialServices = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
+
+    /**
+     * Hàm gọi khởi tạo dịch vụ
+     */
+    private void initializeService(){
+        if(SocialNetwork.socialServices == null) {
+            SocialNetwork.startService(this, serviceConnection);
+        }
+        // Bound Service
+        Intent intent = new Intent(this, SocialServices.class);
+        this.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        this.unbindService(serviceConnection);
     }
 }

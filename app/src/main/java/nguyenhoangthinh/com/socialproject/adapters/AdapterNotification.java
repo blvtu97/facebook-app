@@ -108,7 +108,7 @@ public class AdapterNotification extends RecyclerView.Adapter<AdapterNotificatio
                             //Xác nhận hisUid  vào trong friends child của uid người dùng hiện tại
                             HashMap<String,Object> hashMap = new HashMap<>();
                             hashMap.put("friends",
-                                    friends.replace("@"+hisUid,""));
+                                    friends.replace("@"+hisUid+",",""));
                             ds.getRef().updateChildren(hashMap);
                         }
                     }
@@ -136,12 +136,12 @@ public class AdapterNotification extends RecyclerView.Adapter<AdapterNotificatio
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         for(DataSnapshot ds:dataSnapshot.getChildren()){
-                            String fr = ds.child("friends").getValue().toString();
+                            String friends = ds.child("friends").getValue().toString();
 
-                            fr +=  mUser.getUid()+",";
+                            friends = friends+ "" + mUser.getUid()+",";
                             //Xác nhận uid của người dùng hiện tại vào trong friends child của hisUid
                             HashMap<String,Object> hashMap = new HashMap<>();
-                            hashMap.put("friends", fr);
+                            hashMap.put("friends", friends);
                             ds.getRef().updateChildren(hashMap);
 
                         }
@@ -163,7 +163,7 @@ public class AdapterNotification extends RecyclerView.Adapter<AdapterNotificatio
                             //Xác nhận hisUid  vào trong friends child của uid người dùng hiện tại
                             HashMap<String,Object> hashMap = new HashMap<>();
                             hashMap.put("friends",
-                                    friends.replace("@"+hisUid+",",hisUid.toString()));
+                                    friends.replace("@"+hisUid,hisUid.toString()));
                             ds.getRef().updateChildren(hashMap);
                         }
                     }

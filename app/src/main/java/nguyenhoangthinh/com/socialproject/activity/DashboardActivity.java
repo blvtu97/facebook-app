@@ -43,14 +43,13 @@ import nguyenhoangthinh.com.socialproject.fragments.HomeFragment;
 import nguyenhoangthinh.com.socialproject.fragments.ProfileFragment;
 import nguyenhoangthinh.com.socialproject.fragments.UsersFragment;
 import nguyenhoangthinh.com.socialproject.models.Comment;
-import nguyenhoangthinh.com.socialproject.models.User;
 import nguyenhoangthinh.com.socialproject.notifications.Token;
 import nguyenhoangthinh.com.socialproject.services.SocialNetwork;
 import nguyenhoangthinh.com.socialproject.services.SocialServices;
 import nguyenhoangthinh.com.socialproject.services.SocialStateListener;
 
 public class DashboardActivity extends AppCompatActivity
-        implements SocialStateListener, ServiceConnection {
+        implements SocialStateListener{
 
     // Nhóm firebase
     private FirebaseAuth mAuth;
@@ -85,16 +84,9 @@ public class DashboardActivity extends AppCompatActivity
         setContentView(R.layout.activity_dashboard2);
         initializeUI();
         registerBroadcast();
-        initializeService();
     }
 
-    /**
-     * Hàm gọi khởi tạo dịch vụ
-     */
-    private void initializeService(){
-        if(SocialNetwork.socialServices == null)
-        SocialNetwork.bindToService(this,this);
-    }
+
     @Override
     protected void onStart() {
         checkUserStatus();
@@ -138,7 +130,6 @@ public class DashboardActivity extends AppCompatActivity
         recyclerViewComments.setHasFixedSize(true);
         recyclerViewComments.setLayoutManager(new LinearLayoutManager(this));
 
-        adapterComment = new AdapterComment(this,commentList);
         bottomSheetBehavior = BottomSheetBehavior.from(recyclerViewComments);
 
         viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
@@ -175,7 +166,6 @@ public class DashboardActivity extends AppCompatActivity
         if(user != null){
             //user đã đăng nhập
             mUID = user.getUid();
-
             //lưu lại id của người dùng đăng nhập vào shared preferences
             SharedPreferences sp = getSharedPreferences("SP_USER",MODE_PRIVATE);
             SharedPreferences.Editor editor = sp.edit();
@@ -249,6 +239,7 @@ public class DashboardActivity extends AppCompatActivity
     }
 
     private void changeViewToDarkMode() {
+        recyclerViewComments.setBackgroundColor(R.drawable.custom_background_dark_mode_main);
         toolbar.setBackgroundColor(R.drawable.custom_background_dark_mode_main);
         tabLayout.setBackgroundColor(R.drawable.custom_background_dark_mode_main);
         viewPager.setBackgroundColor(R.drawable.custom_background_dark_mode_main);
@@ -259,16 +250,6 @@ public class DashboardActivity extends AppCompatActivity
         if(stateListener != null){
             socialStateListeners.add(stateListener);
         }
-    }
-
-    @Override
-    public void onServiceConnected(ComponentName name, IBinder service) {
-        ((SocialNetwork.ServiceBinder)service).onServiceConnected(name, service);
-    }
-
-    @Override
-    public void onServiceDisconnected(ComponentName name) {
-
     }
 
     /**
@@ -302,6 +283,8 @@ public class DashboardActivity extends AppCompatActivity
             }else  if(type.equals(SocialServices.LIKE_FOR_POST)){
                 String pId = intent.getStringExtra("pId");
                 likeForPostByUser(pId);
+            }else if(type.equals(SocialServices.DATA_CHANGE)){
+                onMetaChanged();
             }
         }
     }
@@ -344,49 +327,6 @@ public class DashboardActivity extends AppCompatActivity
      *
      */
     private void commentForPostByUser(final String pId, final String cContent) {
-
-        /*FirebaseDatabase.getInstance()
-                .getReference("User")
-                .orderByChild("uid")
-                .equalTo(mUser.getUid())
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-            //Hàm này luôn được gọi khi có sự thay đổi dữ liệu trên firebase
-            @SuppressLint("RestrictedApi")
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                //Kiểm tra cho đến khi nhận được dữ liệu
-                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    //Nhận dữ liệu
-                    String name  = ds.child("name").getValue().toString();
-                    String image = ds.child("image").getValue().toString();
-
-                    String timestamp = String.valueOf(System.currentTimeMillis());
-                    HashMap<String, Object> hashMap = new HashMap<>();
-                    hashMap.put("cContent", cContent);
-                    hashMap.put("pId", pId);
-                    hashMap.put("uid", mUser.getUid());
-                    hashMap.put("cTime", timestamp);
-                    hashMap.put("uName",name);
-                    hashMap.put("uDp",image);
-
-                    //Lưu vào đường dẫn có tên là comment;
-                    DatabaseReference reference =
-                            FirebaseDatabase.getInstance().getReference("Comments");
-
-                    //Tạo đường dẫn pId, đặt dữ liệu vào database
-                    reference.child(timestamp).setValue(hashMap);
-
-
-                    Toast.makeText(DashboardActivity.this,
-                            "Comment successfully", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });*/
-
         String timestamp = String.valueOf(System.currentTimeMillis());
         HashMap<String, Object> hashMap = new HashMap<>();
         hashMap.put("cContent", cContent);
@@ -395,14 +335,13 @@ public class DashboardActivity extends AppCompatActivity
         hashMap.put("cTime", timestamp);
 
         //Lưu vào đường dẫn có tên là comment;
-        DatabaseReference reference =
-                FirebaseDatabase.getInstance().getReference("Comments");
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Comments");
 
         //Tạo đường dẫn pId, đặt dữ liệu vào database
-        reference.child(timestamp).setValue(hashMap);
+        ref.child(timestamp).setValue(hashMap);
 
 
-        Toast.makeText(this, "Comment successfully", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "New Comment...", Toast.LENGTH_SHORT).show();
 
         //Thêm người comment vào danh sách comment
         FirebaseDatabase.getInstance().getReference("Posts")
@@ -429,7 +368,7 @@ public class DashboardActivity extends AppCompatActivity
     /**
      * @param uid
      * @param pId,
-     *            Hàm di xem comment của bài viết
+     *            Hàm xem comment của bài viết
      */
     private void navigateComment(String uid, String pId) {
         loadComments(uid,pId);
@@ -452,6 +391,7 @@ public class DashboardActivity extends AppCompatActivity
                 // Thêm một comment ảo để làm nơi comment row của người dùng
                 Comment comment = new Comment("","","","");
                 commentList.add(comment);
+                adapterComment = new AdapterComment(DashboardActivity.this,commentList);
                 adapterComment.setpId(pId);
                 adapterComment.setCommentList(commentList);
                 recyclerViewComments.setAdapter(adapterComment);

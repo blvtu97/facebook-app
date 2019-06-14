@@ -15,9 +15,13 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.util.Patterns;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,13 +44,14 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import nguyenhoangthinh.com.socialproject.R;
 import nguyenhoangthinh.com.socialproject.services.SocialNetwork;
 import nguyenhoangthinh.com.socialproject.services.SocialServices;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final int DELAY_TIME = 2000;
+    private static final int DELAY_TIME = 300;
 
     private static final int RC_SIGN_IN = 6969;
 
@@ -54,7 +59,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private EditText edtMail, edtPassword;
 
-    private TextView txtForgotPassword;
+    private TextView txtForgotPassword, txtOpen;
+
+    private CircleImageView imgOpen;
+
+    private ImageView imageViewTransaction;
+
+    private RelativeLayout relativeLayoutOpen, relativeLayoutLogin;
 
     // UI đăng nhập bằng google
     private SignInButton btnLoginEmail;
@@ -71,19 +82,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         mapViews();
         initializeService();
+        initAnimation();
+    }
+
+    private void initAnimation(){
+        final Animation animTransaction = AnimationUtils.loadAnimation(this,R.anim.anim_transaction);
+        final Animation animRotate = AnimationUtils.loadAnimation(this,R.anim.anim_rotate);
+        txtOpen.startAnimation(animTransaction);
+        imageViewTransaction.startAnimation(animTransaction);
+        imgOpen.startAnimation(animRotate);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                relativeLayoutOpen.setVisibility(View.GONE);
+                relativeLayoutLogin.setVisibility(View.VISIBLE);
+                animTransaction.cancel();
+                animRotate.cancel();
+            }
+        },2600);
     }
 
     /**
      * Hàm ánh xạ vắt bắt sự kiện cho views
      */
     private void mapViews() {
-
-        btnLogin = findViewById(R.id.btnLogin);
-        btnRegister = findViewById(R.id.btnRegister);
-        edtMail = findViewById(R.id.edtEmail);
-        edtPassword = findViewById(R.id.edtPassword);
-        txtForgotPassword = findViewById(R.id.txtForgotPasword);
-        progressDialog = new ProgressDialog(this);
+        imageViewTransaction = findViewById(R.id.imageViewTransaction);
+        relativeLayoutOpen   = findViewById(R.id.relativeLayoutOpen);
+        relativeLayoutLogin  = findViewById(R.id.relativeLayoutLogin);
+        imgOpen              = findViewById(R.id.imageViewOpen);
+        txtOpen              = findViewById(R.id.textViewOpen);
+        btnLogin             = findViewById(R.id.btnLogin);
+        btnRegister          = findViewById(R.id.btnRegister);
+        edtMail              = findViewById(R.id.edtEmail);
+        edtPassword          = findViewById(R.id.edtPassword);
+        txtForgotPassword    = findViewById(R.id.txtForgotPasword);
+        progressDialog       = new ProgressDialog(this);
+        btnLoginEmail        = findViewById(R.id.btnLoginGmail);
+        btnLogin.setOnClickListener(this);
+        btnRegister.setOnClickListener(this);
+        txtForgotPassword.setOnClickListener(this);
+        btnLoginEmail.setOnClickListener(this);
+        progressDialog.setMessage("Loading");
 
         // Cấu hình để đăng nhập bằng google
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -91,25 +130,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-        //
-
         mAuth = FirebaseAuth.getInstance();
-        btnLoginEmail = findViewById(R.id.btnLoginGmail);
-        progressDialog.setMessage("Loading");
-
-        btnLogin.setOnClickListener(this);
-        btnRegister.setOnClickListener(this);
-        txtForgotPassword.setOnClickListener(this);
-        btnLoginEmail.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btnRegister) {
-            //Đăng kí tại đây
+            //Đăng tài khoản
             startActivity(new Intent(MainActivity.this, RegisterActivity.class));
         } else if (v.getId() == R.id.btnLogin) {
-            //Đăng nhập tại đây
+            //Đăng nhập
             String email = edtMail.getText().toString().trim();
             String password = edtPassword.getText().toString().trim();
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
@@ -140,18 +170,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             FirebaseUser user = mAuth.getCurrentUser();
-                            // Đợi cho đến khi nhận được tất cả dữ liệu từ fire base
-                            //while (!SocialNetwork.isReceiveDataSuccessfully()) ;
 
                             new Handler().postDelayed(
                                     new Runnable() {
                                         @Override
                                         public void run() {
                                             progressDialog.dismiss();
-                                            startActivity(new Intent(MainActivity.this, DashboardActivity.class));
+                                            startActivity(new Intent(MainActivity.this,
+                                                    DashboardActivity.class));
                                             finish();
                                         }
-                                    },DELAY_TIME);
+                                    }, DELAY_TIME);
 
 
                         } else {
@@ -161,7 +190,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             progressDialog.dismiss();
                         }
 
-                        // ...
                     }
                 }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -175,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * Hàm khởi tạo dialog lấy lại mật khẩu
      */
     private void showRecoverPasswordDialog() {
-        //Tạo dialog
+        // Tạo dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Recover Password");
 
@@ -187,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         linearLayout.setPadding(10, 10, 10, 10);
         builder.setView(linearLayout);
 
-        //Tạo button cho dialog và bắt sự kiện
+        // Tạo button cho dialog và bắt sự kiện
         builder.setPositiveButton("Recover", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -237,7 +265,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
@@ -287,17 +314,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 //Tạo đường dẫn uid, đặt dữ liệu vào database
                                 reference.child(uid).setValue(hashMap);
                             }
-                            // Đợi cho đến khi nhận được tất cả dữ liệu từ fire base
-                           // while (!SocialNetwork.isReceiveDataSuccessfully()) ;
                             new Handler().postDelayed(
                                     new Runnable() {
                                         @Override
                                         public void run() {
                                             progressDialog.dismiss();
-                                            startActivity(new Intent(MainActivity.this, DashboardActivity.class));
+                                            startActivity(new Intent(MainActivity.this,
+                                                    DashboardActivity.class));
                                             finish();
                                         }
-                                    },DELAY_TIME);
+                                    }, DELAY_TIME);
                         } else {
                             // If sign in fails, display a message to the user.
                             Toast.makeText(MainActivity.this,
@@ -320,7 +346,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            //((SocialNetwork.ServiceBinder)service).onServiceConnected(name, service);
             SocialServices.LocalBinder binder = (SocialServices.LocalBinder) service;
             SocialNetwork.socialServices = binder.getService();
         }
@@ -347,6 +372,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onStop() {
         super.onStop();
+        //this.unbindService(serviceConnection);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         this.unbindService(serviceConnection);
     }
 }

@@ -70,8 +70,11 @@ public class NotificationFragment extends Fragment implements SocialStateListene
 
         //Initialize Recyclerview
         recyclerViewNotifications = view.findViewById(R.id.recyclerViewNotifications);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        layoutManager.setStackFromEnd(true);
+        layoutManager.setReverseLayout(true);
+        recyclerViewNotifications.setLayoutManager(layoutManager);
         recyclerViewNotifications.setHasFixedSize(true);
-        recyclerViewNotifications.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         txtNotifications = view.findViewById(R.id.txtNotifications);
         //initialize user list

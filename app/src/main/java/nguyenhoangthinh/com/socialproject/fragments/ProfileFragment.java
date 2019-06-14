@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import nguyenhoangthinh.com.socialproject.activity.ChatActivity;
 import nguyenhoangthinh.com.socialproject.activity.DashboardActivity;
 import nguyenhoangthinh.com.socialproject.activity.MainActivity;
@@ -93,7 +94,9 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
     private String storagePath = "Users_Profile_Cover_Imgs/";
 
     // Nhóm UI
-    private ImageView imgAvatar, imgCoverPhoto;
+    private ImageView imgAvatar;
+
+    private ImageView imgCoverPhoto;
 
     private TextView txtName, txtEmail, txtPhone;
 
@@ -106,6 +109,8 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
     private RelativeLayout relativeLayout;
 
     private LinearLayout linearLayout;
+
+    private LinearLayoutManager layoutManager;
 
     //
 
@@ -166,7 +171,12 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
 
         // Initialize UI
         recyclerViewProfiles = view.findViewById(R.id.recyclerViewProfiles);
+        layoutManager = new LinearLayoutManager(getActivity());
+        layoutManager.setStackFromEnd(true);
+        layoutManager.setReverseLayout(true);
+        recyclerViewProfiles.setLayoutManager(layoutManager);
         recyclerViewProfiles.setHasFixedSize(true);
+
         recyclerViewProfiles.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
@@ -187,10 +197,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
                 super.onScrolled(recyclerView, dx, dy);
             }
         });
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
-        layoutManager.setStackFromEnd(true);
-        layoutManager.setReverseLayout(true);
-        recyclerViewProfiles.setLayoutManager(layoutManager);
+
 
         linearLayout         = view.findViewById(R.id.linearLayoutProfile);
         relativeLayout       = view.findViewById(R.id.relativeLayout);
@@ -212,26 +219,25 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         });
 
         uid = mUser.getUid();
-        //getInfoUser(uid);
 
         //Optimize code
-        getInfoUser2(uid);
+        //getInfoUser(uid);
 
         // Tạm thời ẩn đi navigation view
         bottomNavigationView.setVisibility(View.GONE);
-
         // Bắt sự kiện cho bottomNavigationView
         bottomNavigationView.setOnNavigationItemSelectedListener(selectedListener);
-
         postList = new ArrayList<>();
-        //loadPosts();
 
         //Optimize code
-        loadPosts2();
+        if(SocialNetwork.isReceiveDataSuccessfully()){
+            getInfoUser(uid);
+            loadAllPosts();
+        }
         return view;
     }
 
-    private void loadPosts2() {
+    private void loadAllPosts() {
         postList.clear();
         List<Post> pl = SocialNetwork.getPostListCurrent();
         if (uid.equals(mUser.getUid())) {
@@ -258,10 +264,10 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
             }
         }
 
-        adapterProfiles = new AdapterProfiles(getActivity(), postList);
-        recyclerViewProfiles.setAdapter(adapterProfiles);
-        adapterProfiles.notifyDataSetChanged();
         if (postList.size() > 0) {
+            adapterProfiles = new AdapterProfiles(getActivity(), postList);
+            recyclerViewProfiles.setAdapter(adapterProfiles);
+            adapterProfiles.notifyDataSetChanged();
             recyclerViewProfiles.smoothScrollToPosition(postList.size() - 1);
         }
 
@@ -270,7 +276,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
     }
 
     @SuppressLint("RestrictedApi")
-    private void getInfoUser2(String uid) {
+    private void getInfoUser(String uid) {
         // Nếu thông tin người dùng chứa uid này khác với người đăng nhập hiện tại
         // thì đó là một người khác. Ta hiện bottom navigation view
         if (!uid.equals(mUser.getUid())) {
@@ -334,48 +340,6 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         if(SocialNetwork.isDarkMode){
             setDarkMode();
         }
-    }
-
-    private void loadPosts() {
-        // Init posts
-        DatabaseReference databaseReference =
-                FirebaseDatabase.getInstance().getReference("Posts");
-
-        databaseReference.orderByChild("uid")
-                         .equalTo(uid)
-                         .addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                postList.clear();
-                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    Post post = ds.getValue(Post.class);
-                    if (!post.getpMode().equals("Only me")) {
-                        postList.add(post);
-
-                        // Kiểm tra xem 2 người có phải là bạn hay không, xử lý sau
-                    }else if(post.getUid().equals(mUser.getUid())){
-                        //Bài viết của chính người dùng
-                        postList.add(post);
-                    }
-                }
-                if (getActivity() == null) return;
-
-                if(adapterProfiles == null) {
-                    adapterProfiles = new AdapterProfiles(getActivity(), postList);
-                    recyclerViewProfiles.setAdapter(adapterProfiles);
-                }else {
-                    adapterProfiles.notifyDataSetChanged();
-                }
-                if (postList.size() > 0) {
-                    recyclerViewProfiles.smoothScrollToPosition(postList.size() - 1);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
     }
 
     /*
@@ -528,85 +492,6 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
 
            }
        });
-
-    }
-
-    private void getInfoUser(final String uid){
-        /*
-         * Lấy thông tin người dùng hiện đăng nhập bằng email hoặc uid của người dùng.
-        * Tôi sẽ lấy chi tiết người dùng bằng email bằng cách sử dụng truy vấn orderByChild,
-        * chúng tôi sẽ hiển thị chi tiết từ một node có khóa có tên email có giá trị trùng với
-        * node đang được gửi trong email. Nó sẽ tìm kiếm tất cả các node, node có khóa khớp với
-         * nó sẽ nhận được thông tin chi tiết
-        */
-        Query  query = mReference.orderByChild("uid").equalTo(uid);
-        query.addValueEventListener(new ValueEventListener() {
-            //Hàm này luôn được gọi khi có sự thay đổi dữ liệu trên firebase
-            @SuppressLint("RestrictedApi")
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                //Kiểm tra cho đến khi nhận được dữ liệu
-                    for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                        //Nhận dữ liệu
-                        String name    = ds.child("name").getValue().toString();
-                        String email   = ds.child("email").getValue().toString();
-                        String phone   = ds.child("phone").getValue().toString();
-                        String image   = ds.child("image").getValue().toString();
-                        String cover   = ds.child("cover").getValue().toString();
-                        String follow  = ds.child("follow").getValue().toString();
-                        String friends = ds.child("friends").getValue().toString();
-
-                        if(follow.contains(mUser.getUid())){
-                           MenuItem menuItem =
-                                   bottomNavigationView.getMenu().findItem(R.id.itemFollow);
-                           menuItem.setTitle("Following");
-                        }
-                        if(friends.contains(mUser.getUid())){
-                            MenuItem menuItem =
-                                    bottomNavigationView.getMenu().findItem(R.id.itemAddFriend);
-                            if(!isRequestAddFriend(friends)){
-                                menuItem.setTitle("Friend");
-                            }else{
-                                menuItem.setTitle("Requested");
-                            }
-                        }
-                        //Thiết lập dữ liệu
-                        txtName.setText(name);
-                        txtEmail.setText(email);
-                        txtPhone.setText(phone);
-                        try {
-                            //Thiết lập image nếu nhận được hình ảnh từ firebase storage
-                            Picasso.get().load(image).into(imgAvatar);
-                        } catch (Exception e) {
-
-                        }
-
-                        try {
-                            //Thiết lập image nếu nhận được hình ảnh từ firebase storage
-                            Picasso.get()
-                                    .load(cover)
-                                    .placeholder(R.drawable.ic_add_image)
-                                    .into(imgCoverPhoto);
-                        } catch (Exception e) {
-                        }
-
-                        //Nếu người thông tin người dùng khác với người đăng nhập hiện tại
-                        //thì đó là một người khác. Ta hiện bottom navigation view
-                        if(!uid.equals(mUser.getUid())){
-                            bottomNavigationView.setVisibility(View.VISIBLE);
-                            floatingActionButton.setVisibility(View.GONE);
-                        }else{
-                            bottomNavigationView.setVisibility(View.GONE);
-                            floatingActionButton.setVisibility(View.VISIBLE);
-                        }
-                    }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
 
     }
 
@@ -1011,7 +896,8 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
 
     @Override
     public void onMetaChanged() {
-        loadPosts2();
+        getInfoUser(uid);
+        loadAllPosts();
         updateProfile();
     }
 
@@ -1035,8 +921,8 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
     public void onNavigate(String type, String idType) {
         if(type.equals(SocialServices.VIEW_PROFILE)){
             uid = idType;
-            getInfoUser2(uid);
-            loadPosts2();
+            getInfoUser(uid);
+            loadAllPosts();
             updateProfile();
         }
     }

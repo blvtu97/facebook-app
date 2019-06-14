@@ -200,5 +200,7 @@ public class AdapterNotification extends RecyclerView.Adapter<AdapterNotificatio
             btnDelete   = itemView.findViewById(R.id.btnDelete);
         }
     }
+    public void changeDarkMode(){
 
+    }
 }

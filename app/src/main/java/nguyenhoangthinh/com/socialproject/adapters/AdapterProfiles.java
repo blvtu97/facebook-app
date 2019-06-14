@@ -10,6 +10,7 @@ import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -54,6 +55,14 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
 
     public AdapterProfiles(Context mContext, List<Post> postList) {
         this.mContext = mContext;
+        this.postList = postList;
+    }
+
+    public List<Post> getPostList() {
+        return postList;
+    }
+
+    public void setPostList(List<Post> postList) {
         this.postList = postList;
     }
 
@@ -353,8 +362,7 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
         for(int i = 0;i<holderList.size();i++){
             holderList.get(i)
                     .relativeNewsFeedLayout
-                    .setBackground(ContextCompat.getDrawable(mContext,
-                            R.drawable.custom_background_dark_mode_main));
+                    .setBackgroundResource(R.drawable.custom_background_view_post);
 
             holderList.get(i).txtCmtCount.setTextColor(Color.WHITE);
             holderList.get(i).txtLikeCount.setTextColor(Color.WHITE);

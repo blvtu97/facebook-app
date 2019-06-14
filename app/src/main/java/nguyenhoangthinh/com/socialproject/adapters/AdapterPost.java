@@ -214,6 +214,7 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
             });
         }
 
+        if(SocialNetwork.isDarkMode) changeDarkMode();
 
     }
 
@@ -391,8 +392,8 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
         for(int i = 0;i<holderList.size();i++){
             holderList.get(i)
                     .relativeNewsFeedLayout
-                    .setBackground(ContextCompat.getDrawable(mContext,
-                            R.drawable.custom_background_dark_mode_main));
+                    .setBackgroundResource(R.drawable.custom_background_view_post);
+
             holderList.get(i).txtCmtCount.setTextColor(Color.WHITE);
             holderList.get(i).txtLikeCount.setTextColor(Color.WHITE);
             holderList.get(i).txtLikePost.setTextColor(Color.WHITE);

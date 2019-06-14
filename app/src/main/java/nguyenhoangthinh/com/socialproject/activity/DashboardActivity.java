@@ -1,14 +1,11 @@
 package nguyenhoangthinh.com.socialproject.activity;
 
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.TabLayout;
@@ -51,7 +48,7 @@ import nguyenhoangthinh.com.socialproject.services.SocialStateListener;
 public class DashboardActivity extends AppCompatActivity
         implements SocialStateListener{
 
-    // Nhóm firebase
+    // Nhóm fire base
     private FirebaseAuth mAuth;
 
     private FirebaseUser mUser;
@@ -95,7 +92,7 @@ public class DashboardActivity extends AppCompatActivity
 
     @Override
     protected void onResume() {
-        checkUserStatus();
+        //checkUserStatus();
         super.onResume();
     }
 
@@ -133,6 +130,7 @@ public class DashboardActivity extends AppCompatActivity
         bottomSheetBehavior = BottomSheetBehavior.from(recyclerViewComments);
 
         viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
+
         viewPagerAdapter.addFragment(new HomeFragment(),"");
         viewPagerAdapter.addFragment(new ProfileFragment(),"");
         viewPagerAdapter.addFragment(new UsersFragment(),"");
@@ -160,20 +158,20 @@ public class DashboardActivity extends AppCompatActivity
     /**
      * Hàm kiểm tra tài khoản người dùng đang được sử dụng hay là đăng xuất
      */
-    private void checkUserStatus(){
-        //Nhận user hiện tại
+    private void checkUserStatus() {
+        // Nhận user hiện tại
         FirebaseUser user = mAuth.getCurrentUser();
-        if(user != null){
-            //user đã đăng nhập
+        if (user != null) {
+            // User đã đăng nhập
             mUID = user.getUid();
-            //lưu lại id của người dùng đăng nhập vào shared preferences
-            SharedPreferences sp = getSharedPreferences("SP_USER",MODE_PRIVATE);
+            // Lưu lại id của người dùng đăng nhập vào shared preferences
+            SharedPreferences sp = getSharedPreferences("SP_USER", MODE_PRIVATE);
             SharedPreferences.Editor editor = sp.edit();
-            editor.putString("Current_USERID",mUID);
+            editor.putString("Current_USERID", mUID);
             editor.apply();
-        }else {
-            //User chưa đăng nhập, quay về main activity
-            startActivity(new Intent(DashboardActivity.this,MainActivity.class));
+        } else {
+            // User chưa đăng nhập, quay về main activity
+            startActivity(new Intent(DashboardActivity.this, MainActivity.class));
             finish();
         }
     }
@@ -192,7 +190,6 @@ public class DashboardActivity extends AppCompatActivity
 
 
     //------------------------------------------SERVICES--------------------------------------//
-
 
     private List<SocialStateListener> socialStateListeners = new ArrayList<>();
 
@@ -255,10 +252,10 @@ public class DashboardActivity extends AppCompatActivity
     /**
      * Phương thức đăng kí nhận thông báo từ dịch vụ để xử lý
      */
-    private void registerBroadcast(){
+    private void registerBroadcast() {
         broadcastListener = new BroadcastListener();
         IntentFilter intentFilter = new IntentFilter("metaChanged.Broadcast");
-        registerReceiver(broadcastListener,intentFilter);
+        registerReceiver(broadcastListener, intentFilter);
     }
 
     /**
@@ -269,21 +266,21 @@ public class DashboardActivity extends AppCompatActivity
         @Override
         public void onReceive(Context context, Intent intent) {
             String type = intent.getStringExtra(SocialServices.VIEW_TYPE);
-            if(type.equals(SocialServices.VIEW_PROFILE)) {
+            if (type.equals(SocialServices.VIEW_PROFILE)) {
                 String uid = intent.getStringExtra("uid");
                 navigateProfile(uid);
-            }else  if(type.equals(SocialServices.VIEW_COMMENT_POST)){
+            } else if (type.equals(SocialServices.VIEW_COMMENT_POST)) {
                 String uid = intent.getStringExtra("uid");
                 String pId = intent.getStringExtra("pId");
-                navigateComment(uid,pId);
-            }else if(type.equals(SocialServices.COMMENT_FOR_POST)){
+                navigateComment(uid, pId);
+            } else if (type.equals(SocialServices.COMMENT_FOR_POST)) {
                 String pId = intent.getStringExtra("pId");
                 String cContent = intent.getStringExtra("cContent");
-                commentForPostByUser(pId,cContent);
-            }else  if(type.equals(SocialServices.LIKE_FOR_POST)){
+                commentForPostByUser(pId, cContent);
+            } else if (type.equals(SocialServices.LIKE_FOR_POST)) {
                 String pId = intent.getStringExtra("pId");
                 likeForPostByUser(pId);
-            }else if(type.equals(SocialServices.DATA_CHANGE)){
+            } else if (type.equals(SocialServices.DATA_CHANGE)) {
                 onMetaChanged();
             }
         }
@@ -294,32 +291,31 @@ public class DashboardActivity extends AppCompatActivity
      *            Hàm thêm người dùng vào danh sách like của bài viết
      */
     private void likeForPostByUser(String pId) {
+        FirebaseDatabase.getInstance()
+                .getReference("Posts")
+                .orderByChild("pId").equalTo(pId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                            String pLike = ds.child("pLike").getValue().toString();
+                            //Người dùng đã like, ta unlike
+                            if (pLike.contains(mUser.getUid())) {
+                                pLike = pLike.replace(mUser.getUid() + ",", "");
+                            } else {
+                                pLike += mUser.getUid() + ",";
+                            }
+                            HashMap<String, Object> hashMap = new HashMap<>();
+                            hashMap.put("pLike", pLike);
+                            ds.getRef().updateChildren(hashMap);
+                        }
+                    }
 
-     FirebaseDatabase.getInstance()
-             .getReference("Posts")
-             .orderByChild("pId").equalTo(pId)
-             .addListenerForSingleValueEvent(new ValueEventListener() {
-                 @Override
-                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                     for(DataSnapshot ds:dataSnapshot.getChildren()){
-                         String pLike = ds.child("pLike").getValue().toString();
-                         //Người dùng đã like, ta unlike
-                         if(pLike.contains(mUser.getUid())){
-                             pLike = pLike.replace(mUser.getUid()+",","");
-                         }else{
-                             pLike +=mUser.getUid()+",";
-                         }
-                         HashMap<String,Object> hashMap = new HashMap<>();
-                         hashMap.put("pLike",pLike);
-                         ds.getRef().updateChildren(hashMap);
-                     }
-                 }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                 @Override
-                 public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                 }
-             });
+                    }
+                });
     }
 
     /**
@@ -370,28 +366,24 @@ public class DashboardActivity extends AppCompatActivity
      * @param pId,
      *            Hàm xem comment của bài viết
      */
-    private void navigateComment(String uid, String pId) {
-        loadComments(uid,pId);
-    }
-
-    private void loadComments(String uid, final String pId) {
+    private void navigateComment(String uid, final String pId) {
         referencePost.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 commentList.clear();
-                for(DataSnapshot ds:dataSnapshot.getChildren()){
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     Comment comment = ds.getValue(Comment.class);
 
                     // Comment này chứa pId và uid của người dùng hiện tại thì thêm vào commentList
-                    if(comment.getpId().equals(pId)){
+                    if (comment.getpId().equals(pId)) {
                         commentList.add(comment);
                     }
                 }
 
                 // Thêm một comment ảo để làm nơi comment row của người dùng
-                Comment comment = new Comment("","","","");
+                Comment comment = new Comment("", "", "", "");
                 commentList.add(comment);
-                adapterComment = new AdapterComment(DashboardActivity.this,commentList);
+                adapterComment = new AdapterComment(DashboardActivity.this, commentList);
                 adapterComment.setpId(pId);
                 adapterComment.setCommentList(commentList);
                 recyclerViewComments.setAdapter(adapterComment);
@@ -404,4 +396,5 @@ public class DashboardActivity extends AppCompatActivity
             }
         });
     }
+
 }

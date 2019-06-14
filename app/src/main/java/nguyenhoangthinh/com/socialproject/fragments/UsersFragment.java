@@ -69,18 +69,19 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
 
         //Initialize Recyclerview
         recyclerViewUsers = view.findViewById(R.id.recyclerViewUsers);
-        recyclerViewUsers.setHasFixedSize(true);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setStackFromEnd(true);
         layoutManager.setReverseLayout(true);
         recyclerViewUsers.setLayoutManager(layoutManager);
+        recyclerViewUsers.setHasFixedSize(true);
 
         //initialize user list
         userList = new ArrayList<>();
-        //getAllUsers();
 
         // Optimize code
-        getAllUsers2();
+        if(SocialNetwork.isReceiveDataSuccessfully()){
+            getAllUsers2();
+        }
         return view;
     }
 
@@ -179,8 +180,7 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
             recyclerViewUsers.setAdapter(adapterUser);
         }
         if(SocialNetwork.isDarkMode){
-            recyclerViewUsers.setBackground(ContextCompat.getDrawable(getActivity(),
-                    R.drawable.custom_background_dark_mode_main));
+            setDarkMode();
         }
     }
 
@@ -278,9 +278,13 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
     @Override
     public void onDarkMode(boolean change) {
         if(change){
-            recyclerViewUsers.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
-
+            setDarkMode();
         }
+    }
+
+    private void setDarkMode(){
+        recyclerViewUsers.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+        adapterUser.changeDarkMode();
     }
 
 }

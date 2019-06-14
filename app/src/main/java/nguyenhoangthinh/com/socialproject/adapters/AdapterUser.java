@@ -1,6 +1,7 @@
 package nguyenhoangthinh.com.socialproject.adapters;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
@@ -47,6 +48,7 @@ public class AdapterUser extends RecyclerView.Adapter<AdapterUser.Holder> {
 
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int i) {
+        holderList.add(holder);
         //get data
         final String hisUID = userList.get(i).getUid();
         String userImage    = userList.get(i).getImage();
@@ -74,6 +76,9 @@ public class AdapterUser extends RecyclerView.Adapter<AdapterUser.Holder> {
 
             }
         });
+        if(SocialNetwork.isDarkMode){
+            changeDarkMode();
+        }
     }
 
     @Override
@@ -100,9 +105,7 @@ public class AdapterUser extends RecyclerView.Adapter<AdapterUser.Holder> {
 
     public void changeDarkMode() {
         for(int i = 0;i<holderList.size();i++){
-            holderList.get(i).cardView
-                    .setBackground(ContextCompat.getDrawable(mContext
-                            ,R.drawable.custom_background_dark_mode_main));
+            holderList.get(i).cardView.setCardBackgroundColor(R.drawable.custom_background_row_user_dark);
             holderList.get(i).txtEmail.setTextColor(Color.WHITE);
             holderList.get(i).txtName.setTextColor(Color.WHITE);
         }

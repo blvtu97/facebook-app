@@ -73,23 +73,25 @@ public class HomeFragment extends Fragment implements SocialStateListener {
 
         // Init views
         recyclerViewPosts = view.findViewById(R.id.recyclerViewPosts);
-        recyclerViewPosts.setHasFixedSize(true);
-
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setStackFromEnd(true);
         layoutManager.setReverseLayout(true);
         recyclerViewPosts.setLayoutManager(layoutManager);
+        recyclerViewPosts.setHasFixedSize(true);
 
         // Init post list
         postList = new ArrayList<>();
         //loadPosts();
 
         //optimisize code
-        loadPosts2();
+        //loadPosts2();
+        if(SocialNetwork.isReceiveDataSuccessfully()){
+            loadAllPosts();
+        }
         return view;
     }
 
-    private void loadPosts2() {
+    private void loadAllPosts() {
         postList.clear();
         List<Post> pl = SocialNetwork.getPostListCurrent();
         for (Post p : pl) {
@@ -128,6 +130,7 @@ public class HomeFragment extends Fragment implements SocialStateListener {
         if(adapterPost != null){
             recyclerViewPosts.setAdapter(adapterPost);
         }
+
         if(SocialNetwork.isDarkMode){
             setDarkMode();
         }else{
@@ -344,7 +347,7 @@ public class HomeFragment extends Fragment implements SocialStateListener {
 
     @Override
     public void onMetaChanged() {
-        loadPosts2();
+        loadAllPosts();
     }
 
     @Override

@@ -138,8 +138,8 @@ public class SocialServices extends Service {
                     userListCurrent.add(user);
 
                 }
-                senBroadcastToUpdateData();
                 isHaveUsers = true;
+                senBroadcastToUpdateData();
             }
 
             @Override
@@ -199,8 +199,8 @@ public class SocialServices extends Service {
                             Post post = ds.getValue(Post.class);
                             postListCurrent.add(post);
                         }
-                        senBroadcastToUpdateData();
                         isHavePosts = true;
+                        senBroadcastToUpdateData();
                     }
 
                     @Override
@@ -228,8 +228,8 @@ public class SocialServices extends Service {
                             Comment comment = ds.getValue(Comment.class);
                             commentListCurrent.add(comment);
                         }
-                        senBroadcastToUpdateData();
                         isHaveComments = true;
+                        senBroadcastToUpdateData();
                     }
 
                     @Override

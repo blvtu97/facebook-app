@@ -48,11 +48,6 @@ public class RegisterActivity extends AppCompatActivity {
      * Hàm ánh xạ vắt bắt sự kiện cho views
      */
     private void initializeUI() {
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("Create Account");
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setDisplayShowHomeEnabled(true);
-
         edtEmail          = findViewById(R.id.edtEmail);
         edtPassword       = findViewById(R.id.edtPassword);
         edtPasswordRetype = findViewById(R.id.edtPasswordRetype);

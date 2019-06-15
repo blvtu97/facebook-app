@@ -86,7 +86,6 @@ public class SocialServices extends Service {
 
     private void getDatabaseFromFirebase() {
         mUser = FirebaseAuth.getInstance().getCurrentUser();
-        App.ID = mUser.getUid();
         getAllUsers();
         getAllComments();
         getAllPosts();

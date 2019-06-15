@@ -1,6 +1,8 @@
 package nguyenhoangthinh.com.socialproject.activity;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
@@ -33,6 +35,12 @@ public class VideoCallActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = VideoCallActivity.class.getSimpleName();
 
+    private String myUid;
+
+    private String hisUid;
+
+    private String roomId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,7 +51,11 @@ public class VideoCallActivity extends AppCompatActivity {
             initAgoraEngine();
         }
 
-        onjoinChannelClicked();
+        Intent intent = getIntent();
+        myUid = intent.getStringExtra("myUid");
+        myUid = intent.getStringExtra("hisUid");
+        roomId = intent.getStringExtra("room");
+        onjoinChannelClicked(roomId);
     }
 
     /**
@@ -227,9 +239,9 @@ public class VideoCallActivity extends AppCompatActivity {
 
     // Tham gia và rời khỏi kênh
     //Lưu ý: nếu bạn không chỉ định uid khi tham gia kênh, công cụ sẽ chỉ định một uid default
-    public void onjoinChannelClicked() {
+    public void onjoinChannelClicked(String roomId) {
         mRtcEngine.joinChannel(null,
-                "test-channel",
+                roomId,
                 "Extra Optional Data",
                 0);
         setupLocalVideoFeed();
@@ -245,6 +257,7 @@ public class VideoCallActivity extends AppCompatActivity {
         removeVideo(videoContainer1);
         FrameLayout videoContainer2 = findViewById(R.id.bg_video_container);
         removeVideo(videoContainer2);
+        setResult(Activity.RESULT_OK);
         finish();
     }
 

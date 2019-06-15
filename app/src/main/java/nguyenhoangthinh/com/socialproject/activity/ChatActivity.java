@@ -44,6 +44,7 @@ import java.util.Locale;
 import nguyenhoangthinh.com.socialproject.R;
 import nguyenhoangthinh.com.socialproject.adapters.AdapterChat;
 import nguyenhoangthinh.com.socialproject.models.Chat;
+import nguyenhoangthinh.com.socialproject.models.Room;
 import nguyenhoangthinh.com.socialproject.models.User;
 import nguyenhoangthinh.com.socialproject.notifications.APIService;
 import nguyenhoangthinh.com.socialproject.notifications.Client;
@@ -104,6 +105,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
     private boolean notify = false;
 
+    private boolean isCalling = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,10 +126,11 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     protected void onPause() {
         super.onPause();
         //get time stamp
-        String timeStamp = String.valueOf(System.currentTimeMillis());
-
-        //set offline with last seen time stamp
-        checkOnlineStatus(timeStamp);
+        if(!isCalling) {
+            String timeStamp = String.valueOf(System.currentTimeMillis());
+            //set offline with last seen time stamp
+            checkOnlineStatus(timeStamp);
+        }
 
         //set typing
         checkTypingStatus("noOne");
@@ -204,8 +208,12 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                     //get value of online status
                     String onlineStatus = ""+ds.child("onlineStatus").getValue();
                     if(onlineStatus.equals("online")) {
-                        txtStatus.setText(onlineStatus);
-                    }else {
+                        btnVideoCall.setImageResource(R.drawable.ic_video_call);
+                    }else if(onlineStatus.equals("Video calling")){
+                        txtStatus.setText("Calling to you");
+                        btnVideoCall.setImageResource(R.drawable.ic_video_call_on);
+                    } else {
+                        btnVideoCall.setImageResource(R.drawable.ic_video_call_on);
                         //format time
                         Calendar calendar = Calendar.getInstance(Locale.ENGLISH);
                         calendar.setTimeInMillis(Long.parseLong(onlineStatus));
@@ -234,6 +242,32 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+
+        btnSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                notify = true;
+                //Nhận nội dung từ edit text
+                String message = edtMessage.getText().toString().trim();
+
+                if(TextUtils.isEmpty(message)){
+                    //Handle text is empty
+                }else {
+                    sendMessage(message);
+                }
+                //Reset edit text
+                edtMessage.setText("");
+            }
+        });
+
+        btnVideoCall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkOnlineStatus("Video calling");
+                setupToCallVideo();
+
+            }
+        });
 
         //check edit text change listener
         edtMessage.addTextChangedListener(new TextWatcher() {
@@ -469,30 +503,83 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        if(v.getId() == R.id.btnVideoCall){
-            Intent intent = new Intent(ChatActivity.this,VideoCallActivity.class);
-            intent.putExtra("hisUid",hisUid);
-            intent.putExtra("myUid",myUid);
-            startActivityForResult(intent,REQUEST_VIDEO_CALL);
-        }else if(v.getId() == R.id.btnSend){
-            notify = true;
-            //Nhận nội dung từ edit text
-            String message = edtMessage.getText().toString().trim();
 
-            if(TextUtils.isEmpty(message)){
-                //Handle text is empty
-            }else {
-                sendMessage(message);
-            }
-            //Reset edit text
-            edtMessage.setText("");
-        }
+    }
+
+    private void setupToCallVideo() {
+
+        // Tìm phòng
+        FirebaseDatabase.getInstance()
+                .getReference("Rooms")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        boolean findRoomSuccess = false;
+                        String timestamp = String.valueOf(System.currentTimeMillis());
+                        for(DataSnapshot ds:dataSnapshot.getChildren()){
+                            Room room = ds.getValue(Room.class);
+                            if(room.getUser1().equals(myUid) ||
+                               room.getUser2().equals(myUid)){
+                                //Đã có room
+
+                                Intent intent = new Intent(ChatActivity.this,VideoCallActivity.class);
+                                intent.putExtra("hisUid",hisUid);
+                                intent.putExtra("myUid",myUid);
+                                intent.putExtra("room",room.getRoomId());
+                                startActivityForResult(intent,REQUEST_VIDEO_CALL);
+                                isCalling = true;
+                                findRoomSuccess = true;
+                                break;
+                            }
+                        }
+                        if(!findRoomSuccess){
+                            Room room = new Room(timestamp,myUid,hisUid);
+                            FirebaseDatabase.getInstance()
+                                    .getReference("Rooms")
+                                    .child(timestamp).setValue(room);
+                            Intent intent = new Intent(ChatActivity.this,VideoCallActivity.class);
+                            intent.putExtra("hisUid",hisUid);
+                            intent.putExtra("myUid",myUid);
+                            intent.putExtra("room",timestamp);
+                            isCalling = true;
+                            startActivityForResult(intent,REQUEST_VIDEO_CALL);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Toast.makeText(ChatActivity.this,"Not call",Toast.LENGTH_SHORT).show();
+                    }
+                });
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_VIDEO_CALL){
             // Cuộc gọi kết thúc
+            FirebaseDatabase.getInstance()
+                    .getReference("Rooms")
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            for(DataSnapshot ds:dataSnapshot.getChildren()){
+                                Room room = ds.getValue(Room.class);
+                                if(room.getUser1().equals(myUid)){
+                                    ds.getRef().removeValue();
+                                    isCalling = false;
+                                    txtStatus.setText("online");
+                                }
+                            }
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
         }
         super.onActivityResult(requestCode, resultCode, data);
     }

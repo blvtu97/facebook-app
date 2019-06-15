@@ -37,12 +37,14 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
 import nguyenhoangthinh.com.socialproject.R;
 import nguyenhoangthinh.com.socialproject.activity.ProfileActivity;
 import nguyenhoangthinh.com.socialproject.models.Post;
+import nguyenhoangthinh.com.socialproject.models.User;
 import nguyenhoangthinh.com.socialproject.services.SocialNetwork;
 
 public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder> {
@@ -82,9 +84,10 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
 
         //get data
         final String uid = postList.get(i).getUid();
-        final String uEmail = postList.get(i).getuEmail();
-        String uName = postList.get(i).getuName();
-        String uDp = postList.get(i).getuDp();
+        User user = SocialNetwork.getUser(uid);
+        final String uEmail = user.getEmail();
+        String uName = user.getName();
+        String uDp = user.getImage();
         final String pId = postList.get(i).getpId();
         String pStatus = postList.get(i).getpStatus();
         final String pImage = postList.get(i).getpImage();
@@ -104,6 +107,7 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
             holder.txtLikePost.setTextColor(Color.BLUE);
         }else{
             holder.btnLike.setImageResource(R.drawable.ic_like_off);
+            holder.txtLikePost.setTextColor(Color.BLACK);
         }
 
         //Đếm số lượng like
@@ -140,21 +144,6 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
             }
         }
 
-
-        //handle button more click
-        holder.imgProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                    /*Click để truy cập ProfileActivity với uid, uid này là của người dùng được
-                    nhấp, sẽ được sử dụng để hiển thị dữ liệu / bài đăng cụ thể của người dùng*/
-
-                Intent intent = new Intent(mContext, ProfileActivity.class);
-                intent.putExtra("uid", uid);
-                mContext.startActivity(intent);
-
-            }
-        });
-
         holder.btnMore.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -167,8 +156,33 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
         holder.linearLike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SocialNetwork.likeForPost(post.getpId());
-                // changeLikePost(post.getpId(),holder.btnLike);
+                final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                FirebaseDatabase.getInstance()
+                        .getReference("Posts")
+                        .orderByChild("pId").equalTo(pId)
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                                    String pLike = ds.child("pLike").getValue().toString();
+                                    //Người dùng đã like, ta unlike
+                                    if (pLike.contains(uid)) {
+                                        pLike = pLike.replace(uid + ",", "");
+                                    } else {
+                                        pLike += uid + ",";
+                                    }
+                                    HashMap<String, Object> hashMap = new HashMap<>();
+                                    hashMap.put("pLike", pLike);
+                                    ds.getRef().updateChildren(hashMap);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+
             }
         });
 
@@ -176,7 +190,6 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
         holder.linearShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //khai triển sau
                 Toast.makeText(mContext, "Coming soon", Toast.LENGTH_SHORT).show();
             }
         });

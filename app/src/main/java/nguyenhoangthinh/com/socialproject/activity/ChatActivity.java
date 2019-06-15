@@ -1,8 +1,10 @@
 package nguyenhoangthinh.com.socialproject.activity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -53,8 +55,9 @@ import nguyenhoangthinh.com.socialproject.widgets.TypingVisualizer;
 import retrofit2.Call;
 import retrofit2.Callback;
 
-public class ChatActivity extends AppCompatActivity {
+public class ChatActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private static final int REQUEST_VIDEO_CALL = 100;
     //Firebase
     private FirebaseAuth mAuth;
 
@@ -231,31 +234,6 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        //Bắt sự kiện cho button send để gửi tin nhắn
-        btnSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                notify = true;
-                //Nhận nội dung từ edit text
-                String message = edtMessage.getText().toString().trim();
-
-                if(TextUtils.isEmpty(message)){
-                    //Handle text is empty
-                }else {
-                    sendMessage(message);
-                }
-                //Reset edit text
-                edtMessage.setText("");
-            }
-        });
-
-        //Sự kiện video call
-        btnVideoCall.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(ChatActivity.this,VideoCallActivity.class));
-            }
-        });
 
         //check edit text change listener
         edtMessage.addTextChangedListener(new TextWatcher() {
@@ -487,5 +465,35 @@ public class ChatActivity extends AppCompatActivity {
             onBackPressed();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onClick(View v) {
+        if(v.getId() == R.id.btnVideoCall){
+            Intent intent = new Intent(ChatActivity.this,VideoCallActivity.class);
+            intent.putExtra("hisUid",hisUid);
+            intent.putExtra("myUid",myUid);
+            startActivityForResult(intent,REQUEST_VIDEO_CALL);
+        }else if(v.getId() == R.id.btnSend){
+            notify = true;
+            //Nhận nội dung từ edit text
+            String message = edtMessage.getText().toString().trim();
+
+            if(TextUtils.isEmpty(message)){
+                //Handle text is empty
+            }else {
+                sendMessage(message);
+            }
+            //Reset edit text
+            edtMessage.setText("");
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_VIDEO_CALL){
+            // Cuộc gọi kết thúc
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

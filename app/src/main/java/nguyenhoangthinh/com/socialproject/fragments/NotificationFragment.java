@@ -88,9 +88,9 @@ public class NotificationFragment extends Fragment implements SocialStateListene
      */
     private void getNotifications() {
 
-    FirebaseDatabase.getInstance()
-            .getReference("User")
-            .addValueEventListener(new ValueEventListener() {
+        FirebaseDatabase.getInstance()
+                .getReference("User")
+                .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         userList.clear();
@@ -141,7 +141,7 @@ public class NotificationFragment extends Fragment implements SocialStateListene
     }
 
     @Override
-    public void onMetaChanged() {
+    public void onMetaChanged(String type, Object sender) {
     }
 
     @Override

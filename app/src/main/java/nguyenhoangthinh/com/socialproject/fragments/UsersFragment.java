@@ -146,7 +146,7 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
                     if(!user.getUid().equals(userCurrent.getUid())){
                         //Tìm kiếm userName/email chứa đoạn text
                         if(user.getName().toLowerCase().contains(query.toLowerCase())
-                           || user.getEmail().toLowerCase().contains(query.toLowerCase())){
+                                || user.getEmail().toLowerCase().contains(query.toLowerCase())){
                             userList.add(user);
                         }
                     }
@@ -261,12 +261,12 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
         }else {
             //User chưa đăng nhập, quay về main activity
             startActivity(new Intent(getActivity(), MainActivity.class));
-           getActivity().finish();
+            getActivity().finish();
         }
     }
 
     @Override
-    public void onMetaChanged() {
+    public void onMetaChanged(String type, Object sender) {
         getAllUsers2();
     }
 

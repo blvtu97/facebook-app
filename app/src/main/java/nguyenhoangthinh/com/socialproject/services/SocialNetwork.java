@@ -1,10 +1,8 @@
 package nguyenhoangthinh.com.socialproject.services;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.IBinder;
 
 import java.util.List;
 
@@ -29,7 +27,6 @@ public class SocialNetwork {
         }
     }
 
-
     public static void navigateProfile(String uid){
         socialServices.senBroadcastToNavigateUid(uid);
     }
@@ -38,23 +35,7 @@ public class SocialNetwork {
         socialServices.senBroadcastToNavigateCommentOf(post);
     }
 
-    public static void navigateSendCommentBy(Post post){
-        socialServices.senBroadcastToNavigateCommentOf(post);
-    }
-
-    public static void commentForPost(String pId, String cContent){
-        socialServices.senBroadcastToCommentForPost(pId,cContent);
-    }
-
-    public static void likeForPost(String pId){
-        socialServices.senBroadcastToLikeForPost(pId);
-    }
-
     public static List<User> getUserListCurrent(){
-        return socialServices.getUserListCurrent();
-    }
-
-    public static List<User> getUserListCurrentExcept(String uid){
         return socialServices.getUserListCurrent();
     }
 
@@ -74,10 +55,6 @@ public class SocialNetwork {
         return socialServices.findImage(uid);
     }
 
-    public static void clearUserListCurrent(){
-        socialServices.clearUserList();
-    }
-
     public static List<Post> getPostListCurrent(){
         return socialServices.getPostListCurrent();
     }
@@ -85,4 +62,6 @@ public class SocialNetwork {
     public static boolean isReceiveDataSuccessfully(){
         return  socialServices.isReceiveDataSuccessfully();
     }
+
 }
+

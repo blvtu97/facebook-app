@@ -3,17 +3,21 @@ package nguyenhoangthinh.com.socialproject.services;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,11 +34,19 @@ public class SocialServices extends Service {
 
     public static final String VIEW_COMMENT_POST = "VIEW_COMMENT_POST";
 
-    public static final String COMMENT_FOR_POST = "COMMENT_FOR_POST";
-
-    public static final String LIKE_FOR_POST = "LIKE_FOR_POST";
-
     public static final String DATA_CHANGE = "DATA_CHANGE";
+
+    public static final String USER_DATA_CHANGES = "USER_DATA_CHANGES";
+
+    public static final String POST_DATA_CHANGES = "POST_DATA_CHANGES";
+
+    public static final String COMMENT_DELETED = "COMMENT_DELETED";
+
+    public static final String POST_DELETED = "POST_DELETED";
+
+    public static final String NEW_COMMENTS = "NEW_COMMENTS";
+
+    public static final String NEW_POSTS= "NEW_POSTS";
     // Nhóm fire base
     private FirebaseUser mUser;
 
@@ -76,6 +88,9 @@ public class SocialServices extends Service {
         getAllUsers();
         getAllComments();
         getAllPosts();
+        getChildPostChangeData();
+        getChildUserChangeData();
+        getChildCommentChangeData();
     }
 
     public void senBroadcastToNavigateUid(String uid) {
@@ -95,26 +110,12 @@ public class SocialServices extends Service {
         sendBroadcast(intent);
     }
 
-    public void senBroadcastToCommentForPost(String pId, String cContent) {
+    public void senBroadcastToUpdateData(String type, Serializable object) {
         Intent intent = new Intent();
-        intent.putExtra(VIEW_TYPE, COMMENT_FOR_POST);
-        intent.putExtra("pId", pId);
-        intent.putExtra("cContent", cContent);
-        intent.setAction("metaChanged.Broadcast");
-        sendBroadcast(intent);
-    }
-
-    public void senBroadcastToLikeForPost(String pId) {
-        Intent intent = new Intent();
-        intent.putExtra(VIEW_TYPE, LIKE_FOR_POST);
-        intent.putExtra("pId", pId);
-        intent.setAction("metaChanged.Broadcast");
-        sendBroadcast(intent);
-    }
-
-    public void senBroadcastToUpdateData() {
-        Intent intent = new Intent();
-        intent.putExtra(VIEW_TYPE, DATA_CHANGE);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("OBJECT_VALE",object);
+        intent.putExtra("DATA",bundle);
+        intent.putExtra(VIEW_TYPE, type);
         intent.setAction("metaChanged.Broadcast");
         sendBroadcast(intent);
     }
@@ -139,7 +140,7 @@ public class SocialServices extends Service {
 
                 }
                 isHaveUsers = true;
-                senBroadcastToUpdateData();
+                senBroadcastToUpdateData(DATA_CHANGE,null);
             }
 
             @Override
@@ -181,10 +182,6 @@ public class SocialServices extends Service {
         return "";
     }
 
-    public void clearUserList() {
-        userListCurrent.clear();
-    }
-
     private void getAllPosts() {
         // Đường dẫn tới tất cả các post
         FirebaseDatabase.getInstance()
@@ -200,7 +197,6 @@ public class SocialServices extends Service {
                             postListCurrent.add(post);
                         }
                         isHavePosts = true;
-                        senBroadcastToUpdateData();
                     }
 
                     @Override
@@ -229,7 +225,6 @@ public class SocialServices extends Service {
                             commentListCurrent.add(comment);
                         }
                         isHaveComments = true;
-                        senBroadcastToUpdateData();
                     }
 
                     @Override
@@ -239,8 +234,99 @@ public class SocialServices extends Service {
                 });
     }
 
-    public List<Comment> getCommentListCurrent() {
-        return commentListCurrent;
+    private void getChildUserChangeData() {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("User");
+        ref.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                User user = dataSnapshot.getValue(User.class);
+                senBroadcastToUpdateData(USER_DATA_CHANGES,user);
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
+    private void getChildPostChangeData() {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Posts");
+        ref.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                Post post = dataSnapshot.getValue(Post.class);
+                senBroadcastToUpdateData(NEW_POSTS,post);
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                Post post = dataSnapshot.getValue(Post.class);
+                senBroadcastToUpdateData(POST_DATA_CHANGES,post);
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+                Post post = dataSnapshot.getValue(Post.class);
+                senBroadcastToUpdateData(POST_DELETED,post);
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void getChildCommentChangeData() {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Comments");
+        ref.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                Comment comment = dataSnapshot.getValue(Comment.class);
+                senBroadcastToUpdateData(NEW_COMMENTS,comment);
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+                Comment comment = dataSnapshot.getValue(Comment.class);
+                senBroadcastToUpdateData(COMMENT_DELETED,comment);
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
 }

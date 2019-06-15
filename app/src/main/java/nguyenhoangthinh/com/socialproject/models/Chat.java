@@ -1,6 +1,8 @@
 package nguyenhoangthinh.com.socialproject.models;
 
-public class Chat {
+import java.io.Serializable;
+
+public class Chat implements Serializable {
 
     private String message, receiver, sender, timestamp;
 

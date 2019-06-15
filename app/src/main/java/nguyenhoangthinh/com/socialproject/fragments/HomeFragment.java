@@ -37,13 +37,13 @@ import nguyenhoangthinh.com.socialproject.adapters.AdapterPost;
 import nguyenhoangthinh.com.socialproject.models.Post;
 import nguyenhoangthinh.com.socialproject.models.User;
 import nguyenhoangthinh.com.socialproject.services.SocialNetwork;
+import nguyenhoangthinh.com.socialproject.services.SocialServices;
 import nguyenhoangthinh.com.socialproject.services.SocialStateListener;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class HomeFragment extends Fragment implements SocialStateListener {
-
     //fire base
     private FirebaseAuth mAuth;
 
@@ -57,11 +57,14 @@ public class HomeFragment extends Fragment implements SocialStateListener {
 
     private AdapterPost adapterPost;
 
+
+
     public HomeFragment() { }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         ((DashboardActivity) getActivity()).setSocialStateListener(this);
@@ -81,10 +84,7 @@ public class HomeFragment extends Fragment implements SocialStateListener {
 
         // Init post list
         postList = new ArrayList<>();
-        //loadPosts();
 
-        //optimisize code
-        //loadPosts2();
         if(SocialNetwork.isReceiveDataSuccessfully()){
             loadAllPosts();
         }
@@ -119,9 +119,14 @@ public class HomeFragment extends Fragment implements SocialStateListener {
         p.setUid(mUser.getUid());
         postList.add(p);
 
-        adapterPost = new AdapterPost(getActivity(), postList);
-        recyclerViewPosts.setAdapter(adapterPost);
-        adapterPost.notifyDataSetChanged();
+        //NOTE
+        if(adapterPost == null) {
+            adapterPost = new AdapterPost(getActivity(), postList);
+            recyclerViewPosts.setAdapter(adapterPost);
+        }else {
+            adapterPost.setPostList(postList        );
+            adapterPost.notifyDataSetChanged();
+        }
     }
 
     @Override
@@ -129,103 +134,13 @@ public class HomeFragment extends Fragment implements SocialStateListener {
         super.onResume();
         if(adapterPost != null){
             recyclerViewPosts.setAdapter(adapterPost);
-        }
-
-        if(SocialNetwork.isDarkMode){
-            setDarkMode();
-        }else{
-            setLightMode();
-        }
-    }
-
-    private void loadPosts() {
-        // Đường dẫn tới tất cả các post
-       FirebaseDatabase.getInstance()
-               .getReference("Posts")
-               .addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                postList.clear();
-                // Load tất cả bài viết từ fire base, đồng thời lắng nghe sự thay đổi
-                // để cập nhật lại post
-                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    Post post = ds.getValue(Post.class);
-                    newsFeedAlgorithm(post);
-                }
-
-                // Thêm một mới post ảo để set adapter thành nơi cho người dùng đăng post
-                Post p = new Post();
-                p.setUid(mUser.getUid());
-                postList.add(p);
-
-                if (getActivity() == null) return;
-                if(adapterPost == null) {
-                    adapterPost = new AdapterPost(getActivity(), postList);
-                    recyclerViewPosts.setAdapter(adapterPost);
-                }else {
-                    adapterPost.notifyDataSetChanged();
-                }
+            adapterPost.notifyDataSetChanged();
+            if(SocialNetwork.isDarkMode){
+                setDarkMode();
+            }else{
+                setLightMode();
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    /**
-     * Hàm sắp xếp bài viết
-     */
-    private void priorityNewsFeed() {
-
-        //Bài viết xuất hiện mới nhất
-
-        //Bài viết của bạn bè thân nhất
-
-        //Dự đoán thông tin
-
-    }
-
-    private void newsFeedAlgorithm(final Post post) {
-
-        // Tìm kiếm bài viết ở chế độ công khai
-        if (!post.getpMode().equals("Only me")) {
-            // Tìm kiếm người đăng bài post này, kiểm tra xem trong danh sách friends của người
-            // đăng bài post này có chứa uid của dùng đăng nhập hiện tại hay không
-            mReference.orderByChild("uid")
-                      .equalTo(post.getUid())
-                      .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                                String friendList = ds.child("friends").getValue().toString();
-                                //Danh sách có thể chứa người dùng
-                                if (friendList.contains(mUser.getUid())) {
-
-                                    //Kiểm tra đó là bạn hay là lời yêu cầu kết bạn của người
-                                    //dùng đăng nhập hiện tại
-
-                                    //Nếu là bạn bè, thêm post đó vào news feed
-                                    if (!isRequestAddFriend(friendList)) {
-                                        postList.add(post);
-                                    }
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-                    });
         }
-
-        // Tìm kiếm bài viết do người dùng đăng
-        if (post.getUid().equals(mUser.getUid())) {
-            postList.add(post);
-        }
-
 
     }
 
@@ -291,7 +206,7 @@ public class HomeFragment extends Fragment implements SocialStateListener {
                 if (!TextUtils.isEmpty(s)) {
                     searchPosts(s);
                 } else {
-                    loadPosts();
+                    loadAllPosts();
                 }
                 return false;
             }
@@ -303,7 +218,7 @@ public class HomeFragment extends Fragment implements SocialStateListener {
                 if (!TextUtils.isEmpty(s)) {
                     searchPosts(s);
                 } else {
-                    loadPosts();
+                    loadAllPosts();
                 }
                 return false;
             }
@@ -346,8 +261,41 @@ public class HomeFragment extends Fragment implements SocialStateListener {
     }
 
     @Override
-    public void onMetaChanged() {
-        loadAllPosts();
+    public void onMetaChanged(String type, Object sender) {
+        if (type.equals(SocialServices.USER_DATA_CHANGES)) {
+            User user = (User) sender;
+            if (isUserRelateToWithMyself(user)) {
+                loadAllPosts();
+            }
+        } else if (type.equals(SocialServices.POST_DATA_CHANGES)) {
+            Post post = (Post) sender;
+            if (isPostRelateToWithMyself(post)) {
+                loadAllPosts();
+            }
+        } else if (type.equals(SocialServices.NEW_POSTS )||
+                   type.equals(SocialServices.POST_DELETED)) {
+            loadAllPosts();
+        }
+    }
+
+    private boolean isUserRelateToWithMyself(User user) {
+        if (user.getUid().equals(mUser.getUid())) return true;
+        if (user.getFriends().contains(user.getUid())) {
+            if (!isRequestAddFriend(user.getFriends())) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private boolean isPostRelateToWithMyself(Post post) {
+        User user = SocialNetwork.getUser(post.getUid());
+        if(post.getpComment().contains(mUser.getUid())
+                || post.getpLike().contains(mUser.getUid())) return true;
+
+        return isUserRelateToWithMyself(user);
     }
 
     @Override

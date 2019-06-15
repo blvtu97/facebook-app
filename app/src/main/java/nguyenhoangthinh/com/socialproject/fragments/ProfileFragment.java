@@ -46,17 +46,14 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import de.hdodenhof.circleimageview.CircleImageView;
 import nguyenhoangthinh.com.socialproject.activity.ChatActivity;
 import nguyenhoangthinh.com.socialproject.activity.DashboardActivity;
 import nguyenhoangthinh.com.socialproject.activity.MainActivity;
@@ -85,7 +82,6 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
     private DatabaseReference mReference;
 
     private DatabaseReference databaseReference;
-    //
 
     // Storage
     private StorageReference storageReference;
@@ -112,8 +108,6 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
 
     private LinearLayoutManager layoutManager;
 
-    //
-
     //Nhóm constants permissions
     private static final int CAMERA_REQUEST_CODE = 100;
 
@@ -122,13 +116,12 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
     private static final int IMAGE_PIC_CAMERA_REQUEST_CODE = 300;
 
     private static final int IMAGE_PIC_GALLERY_REQUEST_CODE = 400;
-    //
 
     //Thông số xin cấp quyền
     private String cameraPermissions[];
 
     private String storagePermissions[];
-    //
+
     private Uri imageUri;
 
     // Để kiểm tra là loại ảnh đại diện hay là ảnh cover
@@ -136,7 +129,6 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
 
     private String uid;
 
-    //
     private RecyclerView recyclerViewProfiles;
 
     private List<Post> postList;
@@ -192,7 +184,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 if (dy > 0) {
-                   relativeLayout.setVisibility(View.GONE);
+                    relativeLayout.setVisibility(View.GONE);
                 }
                 super.onScrolled(recyclerView, dx, dy);
             }
@@ -264,11 +256,12 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
             }
         }
 
-        if (postList.size() > 0) {
+        if (adapterProfiles == null) {
             adapterProfiles = new AdapterProfiles(getActivity(), postList);
             recyclerViewProfiles.setAdapter(adapterProfiles);
+        }else {
+            adapterProfiles.setPostList(postList);
             adapterProfiles.notifyDataSetChanged();
-            recyclerViewProfiles.smoothScrollToPosition(postList.size() - 1);
         }
 
         relativeLayout.setVisibility(View.VISIBLE);
@@ -324,7 +317,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         }
         try {
             //Thiết lập image nếu nhận được hình ảnh từ firebase storage
-            Glide.with(getActivity()).load(image).into(imgAvatar);
+            Glide.with(getActivity()).load(cover).into(imgCoverPhoto);
 
         } catch (Exception e) {
         }
@@ -336,9 +329,10 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         super.onResume();
         if(adapterProfiles != null){
             recyclerViewProfiles.setAdapter(adapterProfiles);
-        }
-        if(SocialNetwork.isDarkMode){
-            setDarkMode();
+            adapterProfiles.notifyDataSetChanged();
+            if(SocialNetwork.isDarkMode){
+                setDarkMode();
+            }
         }
     }
 
@@ -357,7 +351,6 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
                             return true;
                         case R.id.itemFollow:
                             //Xử lý follow
-                            menuItem.setIcon(R.drawable.ic_follow_on);
                             followPerson(uid,menuItem);
                             return true;
                         case R.id.itemMessage:
@@ -383,7 +376,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
      */
     private void addFriends(final String uid, final MenuItem menuItem) {
 
-        //Thêm chính người dùng hiện tại vào danh sách bạn của người khác của người khác
+        // Thêm chính người dùng hiện tại vào danh sách bạn của người khác của người khác
         databaseReference.orderByChild("uid").equalTo(uid)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -432,7 +425,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
                                             });
                                 }
                             }else {
-                                //Thêm một yêu cầu kết bạn
+                                // Thêm một yêu cầu kết bạn
                                 menuItem.setTitle("Requested");
                                 String fr = ds.child("friends").getValue().toString();
                                 HashMap<String, Object> hm = new HashMap<>();
@@ -468,30 +461,30 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
     private void followPerson(final String uid, final MenuItem menuItem) {
 
         //Thêm chính người dùng hiện tại vào danh sách follow của người khác
-       databaseReference.orderByChild("uid").equalTo(uid)
-               .addListenerForSingleValueEvent(new ValueEventListener() {
-           @Override
-           public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-               for(DataSnapshot ds: dataSnapshot.getChildren()){
-                   String follow = ds.child("follow").getValue().toString();
-                   HashMap<String,Object> hashMap = new HashMap<>();
-                   if(follow.contains(mUser.getUid())){
-                       menuItem.setTitle("Follow");
-                       follow = follow.replace(mUser.getUid()+",","");
-                   }else {
-                       follow += mUser.getUid() + ",";
-                       menuItem.setTitle("Following");
-                   }
-                   hashMap.put("follow",follow);
-                   ds.getRef().updateChildren(hashMap);
-               }
-           }
+        databaseReference.orderByChild("uid").equalTo(uid)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for(DataSnapshot ds: dataSnapshot.getChildren()){
+                            String follow = ds.child("follow").getValue().toString();
+                            HashMap<String,Object> hashMap = new HashMap<>();
+                            if(follow.contains(mUser.getUid())){
+                                menuItem.setTitle("Follow");
+                                follow = follow.replace(mUser.getUid()+",","");
+                            }else {
+                                follow += mUser.getUid() + ",";
+                                menuItem.setTitle("Following");
+                            }
+                            hashMap.put("follow",follow);
+                            ds.getRef().updateChildren(hashMap);
+                        }
+                    }
 
-           @Override
-           public void onCancelled(@NonNull DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-           }
-       });
+                    }
+                });
 
     }
 
@@ -504,9 +497,9 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
      */
     private void showEditProfileDialog() {
         String options[] = new String[]{"Edit profile picture",
-        "Edit cover photo",
-        "Edit name",
-        "Edit phone"};
+                "Edit cover photo",
+                "Edit name",
+                "Edit phone"};
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         //Set title
         builder.setTitle("Choose action");
@@ -526,12 +519,12 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
                         progressDialog.setMessage("Updating cover photo");
                         isProfileOrCover = "cover";
                         showImagePicDialog();
-                            break;
+                        break;
                     case 2:
                         //Edit name clicked
                         progressDialog.setMessage("Updating name");
                         showNamePhoneUpdateDialog("name");
-                            break;
+                        break;
                     case 3:
                         //Edit phone clicked
                         progressDialog.setMessage("Updating phone number");
@@ -635,7 +628,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
                             pickFromGallery();
                         }
                         break;
-                        default:break;
+                    default:break;
                 }
             }
         }).create().show();
@@ -760,24 +753,24 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         final StorageReference storageReference2nd = storageReference.child(filePathAndName);
         //
         storageReference2nd.putFile(uri)
-                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                     @Override
-                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                         //Ảnh được upload tới storage, nhận nó và lưu trữ trong database của user
-                         Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
-                         while (!uriTask.isSuccessful());
-                         Uri downloadUri = uriTask.getResult();
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        //Ảnh được upload tới storage, nhận nó và lưu trữ trong database của user
+                        Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
+                        while (!uriTask.isSuccessful());
+                        Uri downloadUri = uriTask.getResult();
 
-                         //Nếu ảnh được upload thành công
-                         if(uriTask.isSuccessful()){
-                             //Thêm hoặc cập nhật vào user's database
+                        //Nếu ảnh được upload thành công
+                        if(uriTask.isSuccessful()){
+                            //Thêm hoặc cập nhật vào user's database
                              /*Tham số đầu tiên là isProfileOrCover có giá trị 'image' hoặc 'cover'
                              là các key trong user's database nơi url của hình ảnh sẽ được lưu.
 
                              Tham số thứ hai chứa url của hình ảnh được lưu trữ trong bộ lưu trữ firebase,
                               url này sẽ được lưu dưới dạng string so với khóa 'image' hoặc 'cover'*/
-                             HashMap<String,Object> results = new HashMap<>();
-                             results.put(isProfileOrCover,downloadUri.toString());
+                            HashMap<String,Object> results = new HashMap<>();
+                            results.put(isProfileOrCover,downloadUri.toString());
 
                             mReference.child(mUser.getUid())
                                     .updateChildren(results)
@@ -801,14 +794,14 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
                                 }
                             });
 
-                         }else {
-                             //Nếu ảnh được upload thất bại
-                             progressDialog.dismiss();
-                             Toast.makeText(getActivity(),"Some error occured",
-                                     Toast.LENGTH_SHORT).show();
-                         }
-                     }
-                 }).addOnFailureListener(new OnFailureListener() {
+                        }else {
+                            //Nếu ảnh được upload thất bại
+                            progressDialog.dismiss();
+                            Toast.makeText(getActivity(),"Some error occured",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 progressDialog.dismiss();
@@ -895,10 +888,50 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
     }
 
     @Override
-    public void onMetaChanged() {
-        getInfoUser(uid);
-        loadAllPosts();
-        updateProfile();
+    public void onMetaChanged(String type, Object sender) {
+        //getInfoUser(uid);
+        //loadAllPosts();
+        //updateProfile();
+
+        if(type.equals(SocialServices.USER_DATA_CHANGES)){
+            User user = (User)sender;
+            if(uid.equals(user.getUid())){
+                if(isUserRelateToWithMyself(user)){
+                    getInfoUser(uid);
+                    loadAllPosts();
+                    updateProfile();
+                }
+            }
+        }else if(type.equals(SocialServices.POST_DATA_CHANGES)){
+           Post post = (Post)sender;
+           if(isPostRelateToWithMyself(post)){
+               loadAllPosts();
+           }
+        }else if(type.equals(SocialServices.NEW_POSTS )||
+                type.equals(SocialServices.POST_DELETED)){
+            loadAllPosts();
+        }
+    }
+
+    private boolean isUserRelateToWithMyself(User user) {
+        if (user.getUid().equals(mUser.getUid())) return true;
+        if (user.getFriends().contains(user.getUid())) {
+            if (!isRequestAddFriend(user.getFriends())) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+
+    private boolean isPostRelateToWithMyself(Post post) {
+        User user = SocialNetwork.getUser(post.getUid());
+        if(post.getpComment().contains(mUser.getUid())
+        || post.getpLike().contains(mUser.getUid())) return true;
+
+        return isUserRelateToWithMyself(user);
     }
 
     private void updateProfile() {
@@ -916,6 +949,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
             }
         }
     }
+
 
     @Override
     public void onNavigate(String type, String idType) {

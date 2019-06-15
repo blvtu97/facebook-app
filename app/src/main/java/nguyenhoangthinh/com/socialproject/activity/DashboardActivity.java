@@ -17,7 +17,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.widget.CompoundButton;
-import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -29,7 +28,6 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import nguyenhoangthinh.com.socialproject.R;
@@ -47,6 +45,10 @@ import nguyenhoangthinh.com.socialproject.services.SocialStateListener;
 
 public class DashboardActivity extends AppCompatActivity
         implements SocialStateListener{
+
+    private List<SocialStateListener> socialStateListeners = new ArrayList<>();
+
+    private BroadcastListener broadcastListener;
 
     // Nhóm fire base
     private FirebaseAuth mAuth;
@@ -80,9 +82,13 @@ public class DashboardActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard2);
         initializeUI();
-        registerBroadcast();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(broadcastListener);
+    }
 
     @Override
     protected void onStart() {
@@ -92,7 +98,7 @@ public class DashboardActivity extends AppCompatActivity
 
     @Override
     protected void onResume() {
-        //checkUserStatus();
+        registerBroadcast();
         super.onResume();
     }
 
@@ -145,7 +151,6 @@ public class DashboardActivity extends AppCompatActivity
 
 
         checkUserStatus();
-        //update token
         updateToken(FirebaseInstanceId.getInstance().getToken());
     }
 
@@ -188,18 +193,11 @@ public class DashboardActivity extends AppCompatActivity
 
     }
 
-
-    //------------------------------------------SERVICES--------------------------------------//
-
-    private List<SocialStateListener> socialStateListeners = new ArrayList<>();
-
-    private BroadcastListener broadcastListener;
-
     @Override
-    public void onMetaChanged() {
+    public void onMetaChanged(String type, Object sender) {
         for (final SocialStateListener listener : socialStateListeners) {
             if (listener != null) {
-                listener.onMetaChanged();
+                listener.onMetaChanged(type,sender);
             }
         }
     }
@@ -259,109 +257,6 @@ public class DashboardActivity extends AppCompatActivity
     }
 
     /**
-     * Lớp broadcast để đăng kí xử lý thông báo từ dịch vụ
-     */
-    public class BroadcastListener extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String type = intent.getStringExtra(SocialServices.VIEW_TYPE);
-            if (type.equals(SocialServices.VIEW_PROFILE)) {
-                String uid = intent.getStringExtra("uid");
-                navigateProfile(uid);
-            } else if (type.equals(SocialServices.VIEW_COMMENT_POST)) {
-                String uid = intent.getStringExtra("uid");
-                String pId = intent.getStringExtra("pId");
-                navigateComment(uid, pId);
-            } else if (type.equals(SocialServices.COMMENT_FOR_POST)) {
-                String pId = intent.getStringExtra("pId");
-                String cContent = intent.getStringExtra("cContent");
-                commentForPostByUser(pId, cContent);
-            } else if (type.equals(SocialServices.LIKE_FOR_POST)) {
-                String pId = intent.getStringExtra("pId");
-                likeForPostByUser(pId);
-            } else if (type.equals(SocialServices.DATA_CHANGE)) {
-                onMetaChanged();
-            }
-        }
-    }
-
-    /**
-     * @param pId ,ID của bài viết
-     *            Hàm thêm người dùng vào danh sách like của bài viết
-     */
-    private void likeForPostByUser(String pId) {
-        FirebaseDatabase.getInstance()
-                .getReference("Posts")
-                .orderByChild("pId").equalTo(pId)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                            String pLike = ds.child("pLike").getValue().toString();
-                            //Người dùng đã like, ta unlike
-                            if (pLike.contains(mUser.getUid())) {
-                                pLike = pLike.replace(mUser.getUid() + ",", "");
-                            } else {
-                                pLike += mUser.getUid() + ",";
-                            }
-                            HashMap<String, Object> hashMap = new HashMap<>();
-                            hashMap.put("pLike", pLike);
-                            ds.getRef().updateChildren(hashMap);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
-    }
-
-    /**
-     * @param pId ,id của bài viết
-     *
-     */
-    private void commentForPostByUser(final String pId, final String cContent) {
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        HashMap<String, Object> hashMap = new HashMap<>();
-        hashMap.put("cContent", cContent);
-        hashMap.put("pId", pId);
-        hashMap.put("uid", mUser.getUid());
-        hashMap.put("cTime", timestamp);
-
-        //Lưu vào đường dẫn có tên là comment;
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Comments");
-
-        //Tạo đường dẫn pId, đặt dữ liệu vào database
-        ref.child(timestamp).setValue(hashMap);
-
-
-        Toast.makeText(this, "New Comment...", Toast.LENGTH_SHORT).show();
-
-        //Thêm người comment vào danh sách comment
-        FirebaseDatabase.getInstance().getReference("Posts")
-                .orderByChild("pId").equalTo(pId)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                            String pComment = ds.child("pComment").getValue().toString();
-                            pComment += mUser.getUid() + ",";
-                            HashMap<String, Object> hashMap = new HashMap<>();
-                            hashMap.put("pComment", pComment);
-                            ds.getRef().updateChildren(hashMap);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
-    }
-
-    /**
      * @param uid
      * @param pId,
      *            Hàm xem comment của bài viết
@@ -381,12 +276,18 @@ public class DashboardActivity extends AppCompatActivity
                 }
 
                 // Thêm một comment ảo để làm nơi comment row của người dùng
-                Comment comment = new Comment("", "", "", "");
+                Comment comment = new Comment(pId, "", "", mUser.getUid());
                 commentList.add(comment);
-                adapterComment = new AdapterComment(DashboardActivity.this, commentList);
-                adapterComment.setpId(pId);
-                adapterComment.setCommentList(commentList);
-                recyclerViewComments.setAdapter(adapterComment);
+
+                if(adapterComment == null) {
+                    adapterComment = new AdapterComment(DashboardActivity.this, commentList);
+                    adapterComment.setCommentList(commentList);
+                    recyclerViewComments.setAdapter(adapterComment);
+                }else{
+                    adapterComment.setCommentList(commentList);
+                    adapterComment.notifyDataSetChanged();
+                }
+
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             }
 
@@ -397,4 +298,44 @@ public class DashboardActivity extends AppCompatActivity
         });
     }
 
+    private void updateComment(Comment comment) {
+        adapterComment = new AdapterComment(this,commentList);
+        recyclerViewComments.setAdapter(adapterComment);
+    }
+
+    /**
+     * Lớp broadcast để đăng kí xử lý thông báo từ dịch vụ
+     */
+    public class BroadcastListener extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String type = intent.getStringExtra(SocialServices.VIEW_TYPE);
+            if (type.equals(SocialServices.VIEW_PROFILE)) {
+                String uid = intent.getStringExtra("uid");
+                navigateProfile(uid);
+            } else if (type.equals(SocialServices.VIEW_COMMENT_POST)) {
+                String uid = intent.getStringExtra("uid");
+                String pId = intent.getStringExtra("pId");
+                navigateComment(uid, pId);
+            } else if (type.equals(SocialServices.COMMENT_DELETED)) {
+                Comment comment = (Comment) intent.getBundleExtra("DATA")
+                                .getSerializable("OBJECT_VALE");
+                updateComment(comment);
+            } else if (type.equals(SocialServices.USER_DATA_CHANGES)) {
+                Object args =
+                        intent.getBundleExtra("DATA").getSerializable("OBJECT_VALE");
+                onMetaChanged(SocialServices.USER_DATA_CHANGES, args);
+            } else if (type.equals(SocialServices.POST_DATA_CHANGES)) {
+                Object args =
+                        intent.getBundleExtra("DATA").getSerializable("OBJECT_VALE");
+                onMetaChanged(SocialServices.POST_DATA_CHANGES, args);
+            }else if (type.equals(SocialServices.NEW_POSTS) ||
+                      type.equals(SocialServices.POST_DELETED)) {
+                Object args =
+                        intent.getBundleExtra("DATA").getSerializable("OBJECT_VALE");
+                onMetaChanged(SocialServices.NEW_POSTS, args);
+            }
+        }
+    }
 }

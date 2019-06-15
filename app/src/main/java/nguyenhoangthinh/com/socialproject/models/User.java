@@ -1,6 +1,8 @@
 package nguyenhoangthinh.com.socialproject.models;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
     private String name, email, search, phone, image, cover, uid, follow, friends;
 
     public User(){}

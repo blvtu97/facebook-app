@@ -39,12 +39,14 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
 import nguyenhoangthinh.com.socialproject.R;
 import nguyenhoangthinh.com.socialproject.activity.AddPostActivity;
 import nguyenhoangthinh.com.socialproject.models.Post;
+import nguyenhoangthinh.com.socialproject.models.User;
 import nguyenhoangthinh.com.socialproject.services.SocialNetwork;
 
 public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
@@ -58,6 +60,10 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
     private Context mContext;
 
     private List<Post> postList;
+
+    public void setPostList(List<Post> postList) {
+        this.postList = postList;
+    }
 
     public AdapterPost(Context mContext, List<Post> postList) {
         this.mContext = mContext;
@@ -93,9 +99,10 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
         //get data
         final String uid = postList.get(i).getUid();
         if (i != (postList.size() - 1)) {
-            final String uEmail = postList.get(i).getuEmail();
-            String uName = postList.get(i).getuName();
-            String uDp = postList.get(i).getuDp();
+            User user = SocialNetwork.getUser(uid);
+            final String uEmail = user.getEmail();
+            String uName = user.getName();
+            String uDp = user.getImage();
             final String pId = postList.get(i).getpId();
             String pStatus = postList.get(i).getpStatus();
             final String pImage = postList.get(i).getpImage();
@@ -116,6 +123,7 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
                 holder.txtLikePost.setTextColor(Color.BLUE);
             }else{
                 holder.btnLike.setImageResource(R.drawable.ic_like_off);
+                holder.txtLikePost.setTextColor(Color.BLACK);
             }
 
             //Đếm số lượng like
@@ -142,12 +150,12 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
             if (pImage.equals("noImage")) {
                 holder.imgPost.setVisibility(View.GONE);
             } else {
-                try {
-                    Picasso.get().load(pImage).into(holder.imgPost);
-                    holder.imgPost.setVisibility(View.VISIBLE);
-                } catch (Exception e) {
-                    holder.imgPost.setVisibility(View.GONE);
-                }
+                    try {
+                        Picasso.get().load(pImage).into(holder.imgPost);
+                        holder.imgPost.setVisibility(View.VISIBLE);
+                    } catch (Exception e) {
+                        holder.imgPost.setVisibility(View.GONE);
+                    }
             }
 
             holder.btnMore.setOnClickListener(new View.OnClickListener() {
@@ -161,7 +169,33 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
             holder.linearLike.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    SocialNetwork.likeForPost(post.getpId());
+                    final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        FirebaseDatabase.getInstance()
+                                .getReference("Posts")
+                                .orderByChild("pId").equalTo(pId)
+                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                                            String pLike = ds.child("pLike").getValue().toString();
+                                            //Người dùng đã like, ta unlike
+                                            if (pLike.contains(uid)) {
+                                                pLike = pLike.replace(uid + ",", "");
+                                            } else {
+                                                pLike += uid + ",";
+                                            }
+                                            HashMap<String, Object> hashMap = new HashMap<>();
+                                            hashMap.put("pLike", pLike);
+                                            ds.getRef().updateChildren(hashMap);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                    }
+                                });
+
                 }
             });
 
@@ -188,7 +222,7 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
                     SocialNetwork.navigateProfile(uid);
                 }
             });
-            holderList.add(holder);
+
         } else {
             holder.btnViewProfile.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -234,6 +268,7 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
         return nums.length;
     }
 
+
     private void showMoreOptions(ImageView btnMore, String uid,
                                  final String pId, final String pImage) {
         PopupMenu popupMenu = new PopupMenu(mContext,btnMore, Gravity.END);
@@ -277,7 +312,7 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
                         //image deleted, delete from database
                         Query query =
                                 FirebaseDatabase.getInstance().getReference("Posts")
-                                .orderByChild("pId").equalTo(pId);
+                                        .orderByChild("pId").equalTo(pId);
                         query.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -312,7 +347,7 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
 
         //image deleted, delete from database
         Query query = FirebaseDatabase.getInstance().getReference("Posts")
-                        .orderByChild("pId").equalTo(pId);
+                .orderByChild("pId").equalTo(pId);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -345,7 +380,7 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
         ImageView imgProfile,imgPost, btnMore;
 
         TextView txtName, txtTime, txtStatus, txtLikeCount, txtCmtCount,txtLikePost, txtShare,
-        txtCommentPost;
+                txtCommentPost;
 
         LinearLayout linearLike, linearComment, linearShare;
 
@@ -379,7 +414,6 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
             linearComment = itemView.findViewById(R.id.linearComment);
             linearShare   = itemView.findViewById(R.id.linearShare);
             txtCommentPost = itemView.findViewById(R.id.txtCommentPost);
-
             relativeNewsFeedLayout = itemView.findViewById(R.id.relativeNewsFeedLayout);
             //init views
             btnPostStatus  = itemView.findViewById(R.id.btnPostStatus);

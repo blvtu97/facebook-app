@@ -1,6 +1,8 @@
 package nguyenhoangthinh.com.socialproject.models;
 
-public class Comment {
+import java.io.Serializable;
+
+public class Comment implements Serializable {
     private String pId, cContent, cTime, uid;
 
     public Comment(){ }

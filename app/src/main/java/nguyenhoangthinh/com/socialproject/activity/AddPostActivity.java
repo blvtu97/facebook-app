@@ -324,9 +324,6 @@ public class AddPostActivity extends AppCompatActivity {
                               url này sẽ được lưu dưới dạng string so với khóa 'image' hoặc 'cover'*/
                                 HashMap<String, Object> hashMap = new HashMap<>();
                                 hashMap.put("uid", uid);
-                                hashMap.put("uName", name);
-                                hashMap.put("uEmail", email);
-                                hashMap.put("uDp", dp);
                                 hashMap.put("pId", timestamp);
                                 hashMap.put("pStatus", status);
                                 hashMap.put("pImage", downloadUri);
@@ -384,9 +381,6 @@ public class AddPostActivity extends AppCompatActivity {
                               url này sẽ được lưu dưới dạng string so với khóa 'image' hoặc 'cover'*/
             HashMap<String, Object> hashMap = new HashMap<>();
             hashMap.put("uid", uid);
-            hashMap.put("uName", name);
-            hashMap.put("uEmail", email);
-            hashMap.put("uDp", dp);
             hashMap.put("pId", timestamp);
             hashMap.put("pStatus", status);
             hashMap.put("pImage", "noImage");

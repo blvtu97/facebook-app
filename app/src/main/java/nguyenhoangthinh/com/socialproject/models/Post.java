@@ -1,12 +1,14 @@
 package nguyenhoangthinh.com.socialproject.models;
 
-public class Post {
-    private String pId, pStatus, pImage, pTime, pMode, pLike, pComment, uid, uEmail, uDp, uName;
+import java.io.Serializable;
+
+public class Post implements Serializable {
+    private String pId, pStatus, pImage, pTime, pMode, pLike, pComment, uid;
 
     public Post() {
     }
 
-    public Post(String pId, String pStatus, String pImage, String pTime, String pMode, String pLike, String pComment, String uid, String uEmail, String uDp, String uName) {
+    public Post(String pId, String pStatus, String pImage, String pTime, String pMode, String pLike, String pComment, String uid) {
         this.pId = pId;
         this.pStatus = pStatus;
         this.pImage = pImage;
@@ -15,9 +17,6 @@ public class Post {
         this.pLike = pLike;
         this.pComment = pComment;
         this.uid = uid;
-        this.uEmail = uEmail;
-        this.uDp = uDp;
-        this.uName = uName;
     }
 
     public String getpId() {
@@ -82,29 +81,5 @@ public class Post {
 
     public void setUid(String uid) {
         this.uid = uid;
-    }
-
-    public String getuEmail() {
-        return uEmail;
-    }
-
-    public void setuEmail(String uEmail) {
-        this.uEmail = uEmail;
-    }
-
-    public String getuDp() {
-        return uDp;
-    }
-
-    public void setuDp(String uDp) {
-        this.uDp = uDp;
-    }
-
-    public String getuName() {
-        return uName;
-    }
-
-    public void setuName(String uName) {
-        this.uName = uName;
     }
 }

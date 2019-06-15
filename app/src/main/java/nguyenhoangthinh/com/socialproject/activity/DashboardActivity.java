@@ -6,10 +6,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -76,6 +78,8 @@ public class DashboardActivity extends AppCompatActivity
 
     private SwitchCompat switchCompat;
 
+    private SwipeRefreshLayout swipeRefreshLayout;
+
     private Toolbar toolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +114,7 @@ public class DashboardActivity extends AppCompatActivity
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
 
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         tabLayout    = findViewById(R.id.tabLayoutOptions);
         viewPager    = findViewById(R.id.viewPager);
         switchCompat = findViewById(R.id.switchCompat);
@@ -152,6 +157,19 @@ public class DashboardActivity extends AppCompatActivity
 
         checkUserStatus();
         updateToken(FirebaseInstanceId.getInstance().getToken());
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        onMetaChanged(SocialServices.NEW_POSTS,null);
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                },2000);
+            }
+        });
     }
 
     public void updateToken(String token){

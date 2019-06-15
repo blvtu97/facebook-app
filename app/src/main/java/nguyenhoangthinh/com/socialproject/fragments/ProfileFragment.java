@@ -235,9 +235,9 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         if (uid.equals(mUser.getUid())) {
             // Nếu thông tin trùng với người đăng nhập và bài post do người dùng đăng
             // Nhận cái post của người dùng
-            for (Post p1 : pl) {
-                if (uid.equals(p1.getUid())) {
-                    postList.add(p1);
+            for (int i = 0; i < pl.size(); i++) {
+                if (uid.equals(pl.get(i).getUid())) {
+                    postList.add(pl.get(i));
                 }
             }
         } else {
@@ -245,12 +245,8 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
             for (Post p2 : pl) {
                 if (uid.equals(p2.getUid())) {
                     User user = SocialNetwork.getUser(uid);
-                    // Kiểm tra trong danh sách bạn bè của người này có chứa uid của người dùng không
-                    if (user.getFriends().contains(mUser.getUid())) {
-                        // Kiểm tra nếu đó không phải là lời yêu cầu kết bạn
-                        if (!isRequestAddFriend(user.getFriends())) {
-                            postList.add(p2);
-                        }
+                    if (isUserRelateToWithMyself(user)) {
+                        postList.add(p2);
                     }
                 }
             }
@@ -259,13 +255,40 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         if (adapterProfiles == null) {
             adapterProfiles = new AdapterProfiles(getActivity(), postList);
             recyclerViewProfiles.setAdapter(adapterProfiles);
-        }else {
+        } else {
             adapterProfiles.setPostList(postList);
             adapterProfiles.notifyDataSetChanged();
         }
 
         relativeLayout.setVisibility(View.VISIBLE);
         relativeLayout.setFocusable(true);
+    }
+
+    private boolean isInvitation(String friends) {
+        String[] friendList = friends.split(",");
+        for (int i = 0; i < friendList.length; i++) {
+            if (friendList[i].contains(mUser.getUid())) {
+                if (friendList[i].contains("@")) return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isPostRelateToWithMyself(Post post) {
+        User user = SocialNetwork.getUser(post.getUid());
+        return isUserRelateToWithMyself(user);
+    }
+
+    private boolean isUserRelateToWithMyself(User user) {
+        if (user.getUid().equals(mUser.getUid())) return true;
+        if (user.getFriends().contains(user.getUid())) {
+            if (!isInvitation(user.getFriends())) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
     }
 
     @SuppressLint("RestrictedApi")
@@ -298,7 +321,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         if (friends.contains(mUser.getUid())) {
             MenuItem menuItem =
                     bottomNavigationView.getMenu().findItem(R.id.itemAddFriend);
-            if (!isRequestAddFriend(friends)) {
+            if (!isInvitation(friends)) {
                 menuItem.setTitle("Friend");
             } else {
                 menuItem.setTitle("Requested");
@@ -310,13 +333,13 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         txtPhone.setText(phone);
 
         try {
-            //Thiết lập image nếu nhận được hình ảnh từ firebase storage
+            // Thiết lập image nếu nhận được hình ảnh từ firebase storage
             Glide.with(getActivity()).load(image).placeholder(R.drawable.ic_tab_user).into(imgAvatar);
         } catch (Exception e) {
 
         }
         try {
-            //Thiết lập image nếu nhận được hình ảnh từ firebase storage
+            // Thiết lập image nếu nhận được hình ảnh từ firebase storage
             Glide.with(getActivity()).load(cover).into(imgCoverPhoto);
 
         } catch (Exception e) {
@@ -327,10 +350,10 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
     @Override
     public void onResume() {
         super.onResume();
-        if(adapterProfiles != null){
+        if (adapterProfiles != null) {
             recyclerViewProfiles.setAdapter(adapterProfiles);
             adapterProfiles.notifyDataSetChanged();
-            if(SocialNetwork.isDarkMode){
+            if (SocialNetwork.isDarkMode) {
                 setDarkMode();
             }
         }
@@ -354,16 +377,15 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
                             followPerson(uid,menuItem);
                             return true;
                         case R.id.itemMessage:
-                            //Xử lý chat
-                            //StartActivity by putting UID
-                            //Sử dụng UID để nhận diện người chat cùng
+                            // Xử lý chat
+                            // StartActivity by putting UID
+                            // Sử dụng UID để nhận diện người chat cùng
                             Intent intent = new Intent(getActivity(), ChatActivity.class);
                             intent.putExtra("hisUid",uid);
                             getActivity().startActivity(intent);
                             return true;
                         case R.id.itemMore:
-                            //Gọi fragment users
-                            //Xử lý sau
+
                             return true;
                     }
                     return false;
@@ -390,7 +412,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
                             if (friendArr.contains(mUser.getUid())) {
                                 menuItem.setTitle("Add Friend");
                                 //Nếu đang gửi yêu cầu, cho phép hủy
-                                if (isRequestAddFriend(friendArr)) {
+                                if (isInvitation(friendArr)) {
 
                                     String newFriendArr = friendArr
                                             .replace("@" + mUser.getUid() + ",",
@@ -444,15 +466,6 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
 
     }
 
-    private boolean isRequestAddFriend(String friends) {
-        String[] friendList = friends.split(",");
-        for(int i =0;i<friendList.length;i++){
-            if(friendList[i].contains(mUser.getUid())){
-                if(friendList[i].contains("@")) return true;
-            }
-        }
-        return false;
-    }
 
     /**
      * @param uid , uid của người cần follow
@@ -913,38 +926,19 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         }
     }
 
-    private boolean isUserRelateToWithMyself(User user) {
-        if (user.getUid().equals(mUser.getUid())) return true;
-        if (user.getFriends().contains(user.getUid())) {
-            if (!isRequestAddFriend(user.getFriends())) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return false;
-    }
 
-
-    private boolean isPostRelateToWithMyself(Post post) {
-        User user = SocialNetwork.getUser(post.getUid());
-        if(post.getpComment().contains(mUser.getUid())
-        || post.getpLike().contains(mUser.getUid())) return true;
-
-        return isUserRelateToWithMyself(user);
-    }
 
     private void updateProfile() {
-        if(uid != null){
+        if (uid != null) {
             User user = SocialNetwork.getUser(uid);
             String friend = user.getFriends();
-            if(friend.contains(mUser.getUid())){
-                if(isRequestAddFriend(friend)){
+            if (friend.contains(mUser.getUid())) {
+                if (isInvitation(friend)) {
                     bottomNavigationView.getMenu().findItem(R.id.itemAddFriend).setTitle("Requested");
-                }else{
+                } else {
                     bottomNavigationView.getMenu().findItem(R.id.itemAddFriend).setTitle("Friend");
                 }
-            }else{
+            } else {
                 bottomNavigationView.getMenu().findItem(R.id.itemAddFriend).setTitle("Add Friend");
             }
         }

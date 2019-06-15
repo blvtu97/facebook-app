@@ -39,6 +39,7 @@ import nguyenhoangthinh.com.socialproject.models.User;
 import nguyenhoangthinh.com.socialproject.services.SocialNetwork;
 import nguyenhoangthinh.com.socialproject.services.SocialServices;
 import nguyenhoangthinh.com.socialproject.services.SocialStateListener;
+import nguyenhoangthinh.com.socialproject.utils.App;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -92,26 +93,12 @@ public class HomeFragment extends Fragment implements SocialStateListener {
     }
 
     private void loadAllPosts() {
+
         postList.clear();
         List<Post> pl = SocialNetwork.getPostListCurrent();
-        for (Post p : pl) {
-            if (!p.getpMode().equals("Only me")) {
-                // Tìm kiếm người đăng bài post này, kiểm tra xem trong danh sách friends của người
-                // đăng bài post này có chứa uid của dùng đăng nhập hiện tại hay không
-
-                // Lấy ra thông tin người đăng bài post này
-                User user = SocialNetwork.getUser(p.getUid());
-
-                // Kiểm tra trong danh sách bạn bè của người này có chứa uid của người dùng không
-                if (user.getFriends().contains(mUser.getUid())) {
-                    // Kiểm tra nếu đó không phải là lời yêu cầu kết bạn
-                    if (!isRequestAddFriend(user.getFriends())) {
-                        postList.add(p);
-                    }
-                    // Là chính người dùng hiện tại
-                } else if (user.getUid().equals(mUser.getUid())) {
-                    postList.add(p);
-                }
+        for (int i = 0; i < pl.size(); i++) {
+            if (!pl.get(i).getpMode().equals("Only me") && isPostRelateToWithMyself(pl.get(i))) {
+                postList.add(pl.get(i));
             }
         }
 
@@ -119,12 +106,11 @@ public class HomeFragment extends Fragment implements SocialStateListener {
         p.setUid(mUser.getUid());
         postList.add(p);
 
-        //NOTE
-        if(adapterPost == null) {
+        if (adapterPost == null) {
             adapterPost = new AdapterPost(getActivity(), postList);
             recyclerViewPosts.setAdapter(adapterPost);
-        }else {
-            adapterPost.setPostList(postList        );
+        } else {
+            adapterPost.setPostList(postList);
             adapterPost.notifyDataSetChanged();
         }
     }
@@ -144,11 +130,28 @@ public class HomeFragment extends Fragment implements SocialStateListener {
 
     }
 
-    private boolean isRequestAddFriend(String friends) {
+    private boolean isInvitation(String friends) {
         String[] friendList = friends.split(",");
         for (int i = 0; i < friendList.length; i++) {
             if (friendList[i].contains(mUser.getUid())) {
                 if (friendList[i].contains("@")) return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isPostRelateToWithMyself(Post post) {
+        User user = SocialNetwork.getUser(post.getUid());
+        return isUserRelateToWithMyself(user);
+    }
+
+    private boolean isUserRelateToWithMyself(User user) {
+        if (user.getUid().equals(mUser.getUid())) return true;
+        if (user.getFriends().contains(user.getUid())) {
+            if (!isInvitation(user.getFriends())) {
+                return true;
+            } else {
+                return false;
             }
         }
         return false;
@@ -278,25 +281,6 @@ public class HomeFragment extends Fragment implements SocialStateListener {
         }
     }
 
-    private boolean isUserRelateToWithMyself(User user) {
-        if (user.getUid().equals(mUser.getUid())) return true;
-        if (user.getFriends().contains(user.getUid())) {
-            if (!isRequestAddFriend(user.getFriends())) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    private boolean isPostRelateToWithMyself(Post post) {
-        User user = SocialNetwork.getUser(post.getUid());
-        if(post.getpComment().contains(mUser.getUid())
-                || post.getpLike().contains(mUser.getUid())) return true;
-
-        return isUserRelateToWithMyself(user);
-    }
 
     @Override
     public void onNavigate(String type, String idType) {

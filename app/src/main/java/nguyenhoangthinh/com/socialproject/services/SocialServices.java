@@ -24,6 +24,7 @@ import java.util.List;
 import nguyenhoangthinh.com.socialproject.models.Comment;
 import nguyenhoangthinh.com.socialproject.models.Post;
 import nguyenhoangthinh.com.socialproject.models.User;
+import nguyenhoangthinh.com.socialproject.utils.App;
 
 public class SocialServices extends Service {
 
@@ -85,6 +86,7 @@ public class SocialServices extends Service {
 
     private void getDatabaseFromFirebase() {
         mUser = FirebaseAuth.getInstance().getCurrentUser();
+        App.ID = mUser.getUid();
         getAllUsers();
         getAllComments();
         getAllPosts();

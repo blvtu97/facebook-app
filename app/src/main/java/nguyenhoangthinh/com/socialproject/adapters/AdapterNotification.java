@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -22,6 +23,7 @@ import com.squareup.picasso.Picasso;
 import java.util.HashMap;
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import nguyenhoangthinh.com.socialproject.R;
 import nguyenhoangthinh.com.socialproject.models.User;
 
@@ -49,8 +51,8 @@ public class AdapterNotification extends RecyclerView.Adapter<AdapterNotificatio
     @Override
     public Holder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         //inflate layout (row_user.xml)
-        View view =
-                LayoutInflater.from(mContext).inflate(R.layout.row_accept_friend,viewGroup,false);
+        View view = LayoutInflater.from(mContext)
+                .inflate(R.layout.row_accept_friend,viewGroup,false);
 
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
@@ -71,8 +73,9 @@ public class AdapterNotification extends RecyclerView.Adapter<AdapterNotificatio
         holder.txtName.setText(userName);
 
         try {
-            Picasso.get().load(userImage)
-                    .placeholder(R.drawable.ic_user_anonymous).into(holder.imgAvatar);
+            Glide.with(mContext).load(userImage)
+                    .placeholder(R.drawable.ic_user_anonymous)
+                    .into(holder.imgAvatar);
         }catch (Exception e){
 
         }
@@ -186,7 +189,7 @@ public class AdapterNotification extends RecyclerView.Adapter<AdapterNotificatio
     //View holder class
     class Holder extends RecyclerView.ViewHolder{
 
-        ImageView imgAvatar;
+        CircleImageView imgAvatar;
 
         TextView txtName;
 
@@ -200,7 +203,5 @@ public class AdapterNotification extends RecyclerView.Adapter<AdapterNotificatio
             btnDelete   = itemView.findViewById(R.id.btnDelete);
         }
     }
-    public void changeDarkMode(){
 
-    }
 }

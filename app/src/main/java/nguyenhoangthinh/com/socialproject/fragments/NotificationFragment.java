@@ -68,7 +68,7 @@ public class NotificationFragment extends Fragment implements SocialStateListene
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
 
-        //Initialize Recyclerview
+        //Initialize recycler view
         recyclerViewNotifications = view.findViewById(R.id.recyclerViewNotifications);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setStackFromEnd(true);

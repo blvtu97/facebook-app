@@ -7,10 +7,10 @@
     android:background="#CDEFF7">
 
 
-        <com.blogspot.atifsoftwares.circularimageview.CircularImageView
+        <de.hdodenhof.circleimageview.CircleImageView
             android:layout_gravity="center"
             android:id="@+id/circularAvatar"
-            android:padding="10dp"
+            android:padding="7dp"
             android:layout_width="65dp"
             android:layout_height="65dp"
             android:src="@drawable/ic_user_anonymous"/>

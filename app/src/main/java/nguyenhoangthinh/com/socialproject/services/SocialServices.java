@@ -71,6 +71,7 @@ public class SocialServices extends Service {
         return this.binder;
     }
 
+
     public class LocalBinder extends Binder {
         public SocialServices getService() {
             return SocialServices.this;
@@ -84,8 +85,8 @@ public class SocialServices extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private void getDatabaseFromFirebase() {
-        mUser = FirebaseAuth.getInstance().getCurrentUser();
+
+    public void getDatabaseFromFirebase() {
         getAllUsers();
         getAllComments();
         getAllPosts();

@@ -281,7 +281,7 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
 
     private boolean isUserRelateToWithMyself(User user) {
         if (user.getUid().equals(mUser.getUid())) return true;
-        if (user.getFriends().contains(user.getUid())) {
+        if (user.getFriends().contains(mUser.getUid())) {
             if (!isInvitation(user.getFriends())) {
                 return true;
             } else {
@@ -960,6 +960,11 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         if (change) {
             setDarkMode();
         }
+    }
+
+    @Override
+    public void onRefreshApp() {
+        loadAllPosts();
     }
 
     private void setDarkMode(){

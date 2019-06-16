@@ -158,6 +158,11 @@ public class NotificationFragment extends Fragment implements SocialStateListene
     }
 
     @Override
+    public void onRefreshApp() {
+        getNotifications();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         if(SocialNetwork.isDarkMode){

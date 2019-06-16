@@ -63,5 +63,11 @@ public class SocialNetwork {
         return  socialServices.isReceiveDataSuccessfully();
     }
 
+    public static void getDatabaseFromFirebase(){
+        if(socialServices!=null){
+            socialServices.getDatabaseFromFirebase();
+        }
+    }
+
 }
 

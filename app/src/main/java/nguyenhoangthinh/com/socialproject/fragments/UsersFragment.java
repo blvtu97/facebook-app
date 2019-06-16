@@ -282,6 +282,11 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
         }
     }
 
+    @Override
+    public void onRefreshApp() {
+        getAllUsers2();
+    }
+
     private void setDarkMode(){
         recyclerViewUsers.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
         adapterUser.changeDarkMode();

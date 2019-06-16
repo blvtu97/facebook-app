@@ -15,4 +15,6 @@ public interface SocialStateListener {
     void onNavigate(String type, String idType);
 
     void onDarkMode(boolean change);
+
+    void onRefreshApp();
 }

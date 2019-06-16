@@ -53,6 +53,7 @@ public class VideoCallActivity extends AppCompatActivity {
         if (!checkCameraPermissions()) {
             requestPermissionsVideoCall();
         }else {
+            initAgoraEngine();
             Intent intent = getIntent();
             myUid = intent.getStringExtra("myUid");
             myUid = intent.getStringExtra("hisUid");

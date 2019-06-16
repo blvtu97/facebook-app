@@ -1,5 +1,6 @@
 package nguyenhoangthinh.com.socialproject.activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Service;
 import android.content.DialogInterface;
@@ -11,6 +12,7 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -80,6 +82,12 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     private static final int REQUEST_VIDEO_CALL = 100;
 
     private  static final int GALLERY_PICK = 1;
+
+    private static final int PERMISSION_REQ_ID = 22;
+
+    private static final String[] REQUESTED_PERMISSIONS =
+            {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA};
+
     //Firebase
     private FirebaseAuth mAuth;
 
@@ -94,10 +102,10 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     private boolean isVoice = true;
 
     //Sử dụng tính năng voice
-//    private MediaRecorder mediaRecorder;
-//
-//    private static final String outputFileRecord =
-//            Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording.3gp";
+    private MediaRecorder mediaRecorder;
+
+    private static final String outputFileRecord =
+            Environment.getExternalStorageDirectory().getAbsolutePath() + "/recording.3gp";
 
     //Để kiểm tra xem người dùng có nhìn thấy tin nhắn hay không
     private ValueEventListener valueEventListener;
@@ -145,11 +153,12 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-//        mediaRecorder = new MediaRecorder();
-//        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-//        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-//        mediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
-//        mediaRecorder.setOutputFile(outputFileRecord);
+        ActivityCompat.requestPermissions(ChatActivity.this, REQUESTED_PERMISSIONS, PERMISSION_REQ_ID);
+        mediaRecorder = new MediaRecorder();
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+        mediaRecorder.setOutputFile(outputFileRecord);
 
         initializeUI();
     }
@@ -255,7 +264,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                         txtStatus.setText("Calling to you");
                         btnVideoCall.setImageResource(R.drawable.ic_video_call_on);
                     } else {
-                        btnVideoCall.setImageResource(R.drawable.ic_video_call_on);
+                        btnVideoCall.setImageResource(R.drawable.ic_video_call);
                         //format time
                         Calendar calendar = Calendar.getInstance(Locale.ENGLISH);
                         calendar.setTimeInMillis(Long.parseLong(onlineStatus));
@@ -381,13 +390,13 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-//                if(s.toString().equals(null)){
-//                    isVoice = true;
-//                    btnSend.setImageResource(R.drawable.ic_voice);
-//                }else{
-//                    isVoice = false;
-//                    btnSend.setImageResource(R.drawable.ic_send);
-//                }
+                if(s.toString().equals("")){
+                    isVoice = true;
+                    btnSend.setImageResource(R.drawable.ic_voice);
+                }else{
+                    isVoice = false;
+                    btnSend.setImageResource(R.drawable.ic_send);
+                }
                 if(s.toString().trim().length() == 0){
                     checkTypingStatus("noOne");
                 }else{
@@ -523,54 +532,53 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         final String nameRandom = myUid + hisUid + SystemClock.currentThreadTimeMillis() + ".3gp";
         final StorageReference filepath = firebaseStorage.child("Message_Audio").child(nameRandom);
 
-//        filepath.putFile(Uri.parse(outputFileRecord)).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-//            @Override
-//            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-//                if(task.isSuccessful()){
-//                    filepath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-//                        @Override
-//                        public void onSuccess(Uri uri) {
-//                            String timestamp = String.valueOf(System.currentTimeMillis());
-//
-//                            DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-//
-//                            Map messageMap = new HashMap();
-//                            messageMap.put("sender", mCurrentUserId);
-//                            messageMap.put("receiver", hisUid);
-//                            messageMap.put("message", uri.toString());
-//                            messageMap.put("timestamp", timestamp);
-//                            messageMap.put("isSeen", false);
-//                            messageMap.put("type", "audio");
-//
-//                            reference.child("Chats").push().setValue(messageMap);
-//
-//                            DatabaseReference dataRef =
-//                                    FirebaseDatabase.getInstance().getReference("User").child(myUid);
-//                            dataRef.addValueEventListener(new ValueEventListener() {
-//                                @Override
-//                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                                    User user = dataSnapshot.getValue(User.class);
-//                                    if (notify) {
-//                                        sendNotifications(hisUid, user.getName(), "You have an audio message");
-//                                    }
-//                                    notify = false;
-//                                }
-//                                @Override
-//                                public void onCancelled(@NonNull DatabaseError databaseError) {
-//
-//                                }
-//                            });
-//                        }
-//                    }).addOnFailureListener(new OnFailureListener() {
-//                        @Override
-//                        public void onFailure(@NonNull Exception exception) {
-//                            Toast.makeText(ChatActivity.this, "Error : " + exception.getMessage(), Toast.LENGTH_SHORT).show();
-//                        }
-//                    });
-//                }
-//            }
-//        });
+        filepath.putFile(Uri.parse(outputFileRecord)).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                if(task.isSuccessful()){
+                    filepath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            String timestamp = String.valueOf(System.currentTimeMillis());
 
+                            DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+
+                            Map messageMap = new HashMap();
+                            messageMap.put("sender", mCurrentUserId);
+                            messageMap.put("receiver", hisUid);
+                            messageMap.put("message", uri.toString());
+                            messageMap.put("timestamp", timestamp);
+                            messageMap.put("isSeen", false);
+                            messageMap.put("type", "audio");
+
+                            reference.child("Chats").push().setValue(messageMap);
+
+                            DatabaseReference dataRef =
+                                    FirebaseDatabase.getInstance().getReference("User").child(myUid);
+                            dataRef.addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    User user = dataSnapshot.getValue(User.class);
+                                    if (notify) {
+                                        sendNotifications(hisUid, user.getName(), "You have an audio message");
+                                    }
+                                    notify = false;
+                                }
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception exception) {
+                            Toast.makeText(ChatActivity.this, "Error : " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        });
     }
 
     private void sendNotifications(final String hisUid, final String name, final String message) {

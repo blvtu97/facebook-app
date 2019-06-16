@@ -568,7 +568,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                                 if(room.getUser1().equals(myUid)){
                                     ds.getRef().removeValue();
                                     isCalling = false;
-                                    txtStatus.setText("online");
+                                    checkOnlineStatus("online");
                                 }
                             }
 

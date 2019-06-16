@@ -100,7 +100,7 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
         final String uid = postList.get(i).getUid();
         if (i != (postList.size() - 1)) {
             User user = SocialNetwork.getUser(uid);
-            final String uEmail = user.getEmail();
+            String uEmail = user.getEmail();
             String uName = user.getName();
             String uDp = user.getImage();
             final String pId = postList.get(i).getpId();
@@ -113,11 +113,10 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
 
             //format time
             Calendar calendar = Calendar.getInstance(Locale.getDefault());
-            Log.d("HOANG_THINH","Gia tri cua pTime la: "+pTime+" cua post:"+pId);
             calendar.setTimeInMillis(Long.parseLong(pTime));
             String timePost = DateFormat.format("yyyy/MM/dd hh:mm aa", calendar).toString();
 
-            //Kiểm tra người dùng đã like hay chưa
+            // Kiểm tra người dùng đã like hay chưa
             if(pLike.contains(FirebaseAuth.getInstance().getCurrentUser().getUid())){
                 holder.btnLike.setImageResource(R.drawable.ic_like_on);
                 holder.txtLikePost.setTextColor(Color.BLUE);
@@ -126,11 +125,11 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
                 holder.txtLikePost.setTextColor(Color.BLACK);
             }
 
-            //Đếm số lượng like
+            // Đếm số lượng like
             int likeCount = getNumLikeOfPost(pLike);
             holder.txtLikeCount.setText(likeCount+"");
 
-            //Đếm số lượng comment
+            // Đếm số lượng comment
             int commentCount = getNumCommentOfPost(pComment);
             holder.txtCmtCount.setText(commentCount+" comments 0 share");
             //set user image

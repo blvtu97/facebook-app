@@ -157,33 +157,32 @@ public class HomeFragment extends Fragment implements SocialStateListener {
     }
 
     private void searchPosts(final String searchQuery) {
-        //đường dẫn tới tất cả các post
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Posts");
-        ref.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                postList.clear();
-                //Load tất cả bài viết từ fire base, đồng thời lắng nghe sự thay đổi
-                //để cập nhật lại
-                for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    Post post = ds.getValue(Post.class);
-                    //Tìm kiếm post theo status
-                    if (post.getpStatus().toLowerCase().contains(searchQuery.toLowerCase())) {
-                        postList.add(post);
-                    }
+        postList.clear();
+        List<Post> list = SocialNetwork.getPostListCurrent();
+        for(int i = 0;i<list.size();i++){
+            if(isPostRelateToWithMyself(list.get(i))){
+                if(list.get(i).getpStatus().toLowerCase().contains(searchQuery.toLowerCase())
+                  || (SocialNetwork.getUser(list.get(i).getUid())
+                                   .getName()
+                                   .toLowerCase().contains(searchQuery.toLowerCase()))){
+                    postList.add(list.get(i));
                 }
-                adapterPost = new AdapterPost(getActivity(), postList);
-                adapterPost.notifyDataSetChanged();
-                recyclerViewPosts.setAdapter(adapterPost);
             }
+        }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(getActivity(),
-                        databaseError.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
+
+        Post p = new Post();
+        p.setUid(mUser.getUid());
+        postList.add(p);
+
+        if(adapterPost == null){
+            adapterPost = new AdapterPost(getActivity(),postList);
+            recyclerViewPosts.setAdapter(adapterPost);
+        }else{
+            adapterPost.setPostList(postList);
+            adapterPost.notifyDataSetChanged();
+        }
+
     }
 
     @Override
@@ -205,11 +204,11 @@ public class HomeFragment extends Fragment implements SocialStateListener {
             @Override
             public boolean onQueryTextSubmit(String s) {
                 //gọi khi người dùng nhấn tìm kiếm
-                if (!TextUtils.isEmpty(s)) {
+               /* if (!TextUtils.isEmpty(s)) {
                     searchPosts(s);
                 } else {
                     loadAllPosts();
-                }
+                }*/
                 return false;
             }
 

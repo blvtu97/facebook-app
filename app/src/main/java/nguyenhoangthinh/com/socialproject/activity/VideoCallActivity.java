@@ -5,7 +5,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -18,6 +20,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import io.agora.rtc.Constants;
 import io.agora.rtc.IRtcEngineEventHandler;
@@ -41,56 +44,63 @@ public class VideoCallActivity extends AppCompatActivity {
 
     private String roomId;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_call);
 
-        if (checkSelfPermission(REQUESTED_PERMISSIONS[0], PERMISSION_REQ_ID) &&
-                checkSelfPermission(REQUESTED_PERMISSIONS[1], PERMISSION_REQ_ID)) {
-            initAgoraEngine();
+        if (!checkCameraPermissions()) {
+            requestPermissionsVideoCall();
+        }else {
+            Intent intent = getIntent();
+            myUid = intent.getStringExtra("myUid");
+            myUid = intent.getStringExtra("hisUid");
+            roomId = intent.getStringExtra("room");
+            onjoinChannelClicked(roomId);
         }
 
-        Intent intent = getIntent();
-        myUid = intent.getStringExtra("myUid");
-        myUid = intent.getStringExtra("hisUid");
-        roomId = intent.getStringExtra("room");
-        onjoinChannelClicked(roomId);
     }
 
-    /**
-     * @param permission
-     * @param requestCode
-     * @return true nếu ứng dụng được cấp quyền record audio và camera, ngược lại false
-     */
-    public boolean checkSelfPermission(String permission, int requestCode) {
-        if (ContextCompat.checkSelfPermission(this, permission)
-                != PackageManager.PERMISSION_GRANTED) {
+    private boolean checkCameraPermissions(){
+        //Nếu ứng dụng có quyền này thì trả về PackageManager.PERMISSION_GRANTED
+        boolean result1 = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.CAMERA) == (PackageManager.PERMISSION_GRANTED);
 
-            ActivityCompat.requestPermissions(this,
-                    REQUESTED_PERMISSIONS,
-                    requestCode);
-            return false;
-        }
-        return true;
+        boolean result2 = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.RECORD_AUDIO) == (PackageManager.PERMISSION_GRANTED);
+        return result1 && result2;
     }
 
+    public void requestPermissionsVideoCall(){
+        ActivityCompat.requestPermissions(this,
+                REQUESTED_PERMISSIONS,
+                PERMISSION_REQ_ID);
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String permissions[], @NonNull int[] grantResults) {
-        Log.i(LOG_TAG, "onRequestPermissionsResult " + grantResults[0] + " " + requestCode);
 
         switch (requestCode) {
             case PERMISSION_REQ_ID: {
-                if (grantResults[0] != PackageManager.PERMISSION_GRANTED ||
-                        grantResults[1] != PackageManager.PERMISSION_GRANTED) {
-                    Log.i(LOG_TAG, "Need permissions " +
-                            Manifest.permission.RECORD_AUDIO +
-                            "/" + Manifest.permission.CAMERA);
-                    break;
+                if (grantResults.length>0) {
+                    boolean cameraAccept = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    boolean audioAccept = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                    if(cameraAccept && audioAccept){
+                        //permissions enabled
+                        initAgoraEngine();
+                        Intent intent = getIntent();
+                        myUid = intent.getStringExtra("myUid");
+                        myUid = intent.getStringExtra("hisUid");
+                        roomId = intent.getStringExtra("room");
+                        onjoinChannelClicked(roomId);
+                    }else{
+                        ////permissions denied
+                        Toast.makeText(this,
+                                "Please accept camera & audio permissions",
+                                Toast.LENGTH_SHORT).show();
+                    }
                 }
-                // if permission granted, initialize the engine
-                initAgoraEngine();
                 break;
             }
         }

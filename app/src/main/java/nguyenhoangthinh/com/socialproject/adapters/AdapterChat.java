@@ -3,6 +3,7 @@ package nguyenhoangthinh.com.socialproject.adapters;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.media.MediaPlayer;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateFormat;
@@ -10,11 +11,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -33,11 +37,15 @@ import java.util.Locale;
 import nguyenhoangthinh.com.socialproject.R;
 import nguyenhoangthinh.com.socialproject.models.Chat;
 
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
+
 public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
 
     private static final int MESSAGE_TYPE_ON_LEFT = 0;
 
     private static final int MESSAGE_TYPE_ON_RIGHT = 1;
+
+    private boolean audioPlaying = false;
 
     private Context mContext;
 
@@ -74,6 +82,10 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
 
     @Override
     public void onBindViewHolder(@NonNull Holder holder,final int i) {
+
+        final Chat c = chatList.get(i);
+        String message_type = c.getType();
+
         Log.d("MY_TAG","onBindViewHolder " + i);
         //get data
         String message = chatList.get(i).getMessage();
@@ -85,7 +97,56 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
         String dateTime = DateFormat.format("yyyy/MM/dd hh:mm aa",calendar).toString();
 
         //set data
-        holder.txtMessage.setText(message);
+        if(message_type.equals("text")) {
+            holder.txtMessage.setVisibility(View.VISIBLE);
+            holder.imgMessage.setVisibility(View.GONE);
+            //holder.btnAudioMessage.setVisibility(View.GONE);
+            holder.txtMessage.setText(message);
+        } else if(message_type.equals("image")){
+            holder.imgMessage.setVisibility(View.VISIBLE);
+            holder.txtMessage.setVisibility(View.GONE);
+            //holder.btnAudioMessage.setVisibility(View.GONE);
+            try {
+                //Picasso.get().load(message).into(holder.imgMessage);
+                Glide.with(mContext)
+                        .load(message)
+                        .transition(withCrossFade())
+                        .apply(new RequestOptions().override(100, 100)
+                                .placeholder(R.drawable.loading)
+                                .error(R.drawable.error).centerCrop())
+                        .into(holder.imgMessage);
+            }catch (Exception e){
+                Toast.makeText(mContext, "Can't load image !", Toast.LENGTH_SHORT).show();
+            }
+//        }else if(message_type.equals("audio")){
+//            holder.imgMessage.setVisibility(View.GONE);
+//            holder.txtMessage.setVisibility(View.GONE);
+//            holder.btnAudioMessage.setVisibility(View.INVISIBLE);
+//            holder.btnAudioMessage.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    {
+//                        String url = c.getMessage();
+//                        if(audioPlaying){
+//                            audioPlaying = false;
+//                            v.setBackgroundResource(R.drawable.ic_play);
+//                        }else{
+//                            audioPlaying = true;
+//                            v.setBackgroundResource(R.drawable.ic_stop);
+//                            MediaPlayer mediaPlayer = new MediaPlayer();
+//                            try {
+//                                mediaPlayer.setDataSource(url);
+//                                mediaPlayer.prepare();
+//                                mediaPlayer.start();
+//                                Toast.makeText(mContext, "Playing Audio", Toast.LENGTH_LONG).show();
+//                            } catch (Exception e) {
+//                                // handle exception
+//                            }
+//                        }
+//                    }
+//                }
+//            });
+        }
         holder.txtTimeSend.setText(dateTime);
         try{
             Picasso.get().load(imageUrl).into(holder.imgProfile);
@@ -209,11 +270,13 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
     class Holder extends RecyclerView.ViewHolder{
 
         //UI
-        ImageView imgProfile;
+        ImageView imgProfile, imgMessage;
 
         TextView txtMessage, txtTimeSend, txtIsSeen;
 
         LinearLayout messageLinearLayout;
+
+        ImageButton btnAudioMessage;
 
         public Holder(@NonNull View itemView) {
             super(itemView);
@@ -224,6 +287,8 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
             txtTimeSend = itemView.findViewById(R.id.txtTimeSend);
             txtIsSeen   = itemView.findViewById(R.id.txtSeenMessage);
             messageLinearLayout = itemView.findViewById(R.id.messageLayout);
+            imgMessage  = itemView.findViewById(R.id.imgMessage);
+            //btnAudioMessage = itemView.findViewById(R.id.btnAudioMessage);
         }
     }
 }

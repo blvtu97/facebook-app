@@ -4,18 +4,19 @@ import java.io.Serializable;
 
 public class Chat implements Serializable {
 
-    private String message, receiver, sender, timestamp;
+    private String message, receiver, sender, timestamp, type;
 
     private boolean isSeen;
 
     public Chat(){}
 
-    public Chat(String message, String receiver, String sender, String timestamp, boolean isSeen) {
+    public Chat(String message, String receiver, String sender, String timestamp, boolean isSeen, String type) {
         this.message = message;
         this.receiver = receiver;
         this.sender = sender;
         this.timestamp = timestamp;
         this.isSeen = isSeen;
+        this.type = type;
     }
 
     public String getMessage() {
@@ -56,5 +57,13 @@ public class Chat implements Serializable {
 
     public void setSeen(boolean seen) {
         isSeen = seen;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

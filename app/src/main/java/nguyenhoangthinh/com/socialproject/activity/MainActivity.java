@@ -83,6 +83,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mapViews();
         initializeService();
         initAnimation();
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(mAuth.getCurrentUser() != null){
+            startActivity(new Intent(MainActivity.this, DashboardActivity.class));
+            finish();
+        }
     }
 
     private void initAnimation(){

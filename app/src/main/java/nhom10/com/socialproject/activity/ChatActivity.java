@@ -205,6 +205,7 @@ public class ChatActivity extends AppCompatActivity {
         toolbar.setTitle("");
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
+
         typingLinearLayout = findViewById(R.id.typingLayout);
         typingVisualizer   = findViewById(R.id.typingVisualizer);
         recyclerView = findViewById(R.id.recyclerViewChats);

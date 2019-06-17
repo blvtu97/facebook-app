@@ -46,10 +46,6 @@ public class TypingVisualizer extends View {
         //set paint style, Style.FILL will fill the color, Style.STROKE will stroke the color
         paint.setStyle(Paint.Style.FILL);
 
-        //canvas.drawCircle(getDimensionInPixel(5),60,5,paint);
-        //canvas.drawCircle(getDimensionInPixel(10),50,5,paint);
-        //canvas.drawCircle(getDimensionInPixel(15),40,5,paint);
-
         canvas.drawRect(getDimensionInPixel(5), getHeight() - (40 + random.nextInt((int) (getHeight() / 1.5f) - 30)), getDimensionInPixel(7), getHeight() - 25, paint);
         canvas.drawRect(getDimensionInPixel(15), getHeight() - (40 + random.nextInt((int) (getHeight() / 1.5f) - 30)), getDimensionInPixel(17), getHeight() -25, paint);
         canvas.drawRect(getDimensionInPixel(25), getHeight() - (40 + random.nextInt((int) (getHeight() / 1.5f) - 30)), getDimensionInPixel(27), getHeight() -25, paint);

@@ -22,7 +22,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -38,10 +37,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import nhom10.com.socialproject.R;
 import nhom10.com.socialproject.models.Chat;
-
-import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
 
@@ -51,8 +49,6 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
 
     private boolean audioPlaying = false;
 
-    private boolean isImageFitToScreen = false;
-
     private Context mContext;
 
     private List<Chat> chatList;
@@ -60,6 +56,10 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
     private String imageUrl;
 
     private FirebaseUser mUser;
+
+    public void setChatList(List<Chat> chatList) {
+        this.chatList = chatList;
+    }
 
     public AdapterChat(Context mContext, List<Chat> chatList, String imageUrl) {
         this.mContext = mContext;
@@ -92,17 +92,16 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
         final Chat c = chatList.get(i);
         final String message_type = c.getType();
 
-        Log.d("MY_TAG","onBindViewHolder " + i);
-        //get data
+        // get data
         final String message = chatList.get(i).getMessage();
         String timestamp = chatList.get(i).getTimestamp();
 
-        //format time
+        // format time
         Calendar calendar = Calendar.getInstance(Locale.ENGLISH);
             calendar.setTimeInMillis(Long.parseLong(timestamp));
         String dateTime = DateFormat.format("yyyy/MM/dd hh:mm aa",calendar).toString();
 
-        //set data
+        // set data
         if(message_type.equals("text")) {
             holder.txtMessage.setVisibility(View.VISIBLE);
             holder.imgMessage.setVisibility(View.GONE);
@@ -113,13 +112,8 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
             holder.txtMessage.setVisibility(View.GONE);
             holder.btnAudioMessage.setVisibility(View.GONE);
             try {
-                //Picasso.get().load(message).into(holder.imgMessage);
                 Glide.with(mContext)
                         .load(message)
-                        .transition(withCrossFade())
-                        .apply(new RequestOptions().override(100, 100)
-                                .placeholder(R.drawable.loading)
-                                .error(R.drawable.error).centerCrop())
                         .into(holder.imgMessage);
             }catch (Exception e){
                 Toast.makeText(mContext, "Can't load image !", Toast.LENGTH_SHORT).show();
@@ -238,10 +232,10 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
             }
         });
 
-        //set seen/delivered state of message
-        //Kiểm tra xem tin nhắn cuối cùng trong danh sách
-        //TH1: của row left thì isSeen đã GONE trong xml
-        //TH2: của row right thì kiểm tra xem đã nhận được tin nhắn chưa
+        // Set seen/delivered state of message
+        // Kiểm tra xem tin nhắn cuối cùng trong danh sách
+        // TH1: của row left thì isSeen đã GONE trong xml
+        // TH2: của row right thì kiểm tra xem đã nhận được tin nhắn chưa
         if(i == chatList.size() - 1){
             if(chatList.get(i).isSeen()){
                 holder.txtIsSeen.setText("Seen");
@@ -306,10 +300,10 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
                 for(DataSnapshot ds:dataSnapshot.getChildren()){
 
                     if(ds.child("sender").getValue().equals(myUid)) {
-                        //Xóa trên firebase
-                        //ds.getRef().removeValue();
+                        // Xóa trên firebase
+                        // ds.getRef().removeValue();
 
-                        //Thay đổi nội dung
+                        // Thay đổi nội dung
                         HashMap<String, Object> hashMap = new HashMap<>();
                         hashMap.put("message", "The message has been deleted");
                         ds.getRef().updateChildren(hashMap);
@@ -340,7 +334,6 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
     */
     @Override
     public int getItemViewType(int position) {
-        Log.d("MY_TAG","getItemViewType " + position);
         //Hiện đang đăng nhập người dùng
         mUser = FirebaseAuth.getInstance().getCurrentUser();
         if(chatList.get(position).getSender().equals(mUser.getUid())){
@@ -349,12 +342,14 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
         return  MESSAGE_TYPE_ON_LEFT;
     }
 
-    //ViewHolder
+    // ViewHolder
 
     class Holder extends RecyclerView.ViewHolder{
 
-        //UI
-        ImageView imgProfile, imgMessage;
+        // Views
+        CircleImageView imgProfile;
+
+        ImageView imgMessage;
 
         TextView txtMessage, txtTimeSend, txtIsSeen;
 
@@ -365,14 +360,14 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
         public Holder(@NonNull View itemView) {
             super(itemView);
 
-            //map views
-            imgProfile  = itemView.findViewById(R.id.imageProfile);
-            txtMessage  = itemView.findViewById(R.id.txtMessage);
-            txtTimeSend = itemView.findViewById(R.id.txtTimeSend);
-            txtIsSeen   = itemView.findViewById(R.id.txtSeenMessage);
+            // Ánh xạ
+            imgProfile          = itemView.findViewById(R.id.imageProfile);
+            txtMessage          = itemView.findViewById(R.id.txtMessage);
+            txtTimeSend         = itemView.findViewById(R.id.txtTimeSend);
+            txtIsSeen           = itemView.findViewById(R.id.txtSeenMessage);
             messageLinearLayout = itemView.findViewById(R.id.messageLayout);
-            imgMessage  = itemView.findViewById(R.id.imgMessage);
-            btnAudioMessage = itemView.findViewById(R.id.btnAudioMessage);
+            imgMessage          = itemView.findViewById(R.id.imgMessage);
+            btnAudioMessage     = itemView.findViewById(R.id.btnAudioMessage);
         }
     }
 }

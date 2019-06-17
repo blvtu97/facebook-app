@@ -88,6 +88,7 @@ public class DashboardActivity extends AppCompatActivity
         if(!SocialNetwork.isReceiveDataSuccessfully()){
             SocialNetwork.getDatabaseFromFirebase();
         }
+
         initializeUI();
 
     }
@@ -106,8 +107,11 @@ public class DashboardActivity extends AppCompatActivity
 
     @Override
     protected void onResume() {
-        registerBroadcast();
         super.onResume();
+        registerBroadcast();
+        if(!SocialNetwork.isReceiveDataSuccessfully()){
+            SocialNetwork.getDatabaseFromFirebase();
+        }
     }
 
     /**
@@ -122,6 +126,7 @@ public class DashboardActivity extends AppCompatActivity
         tabLayout    = findViewById(R.id.tabLayoutOptions);
         viewPager    = findViewById(R.id.viewPager);
         switchCompat = findViewById(R.id.switchCompat);
+
         switchCompat.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -145,7 +150,6 @@ public class DashboardActivity extends AppCompatActivity
         bottomSheetBehavior = BottomSheetBehavior.from(recyclerViewComments);
 
         viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
-
         viewPagerAdapter.addFragment(new HomeFragment(),"");
         viewPagerAdapter.addFragment(new ProfileFragment(),"");
         viewPagerAdapter.addFragment(new UsersFragment(),"");
@@ -171,7 +175,7 @@ public class DashboardActivity extends AppCompatActivity
                         onRefreshApp();
                         swipeRefreshLayout.setRefreshing(false);
                     }
-                },2000);
+                },800);
             }
         });
     }
@@ -195,6 +199,7 @@ public class DashboardActivity extends AppCompatActivity
             SharedPreferences sp = getSharedPreferences("SP_USER", MODE_PRIVATE);
             SharedPreferences.Editor editor = sp.edit();
             editor.putString("Current_USERID", mUID);
+            editor.putString("Current_USEREMAIL",mUser.getEmail());
             editor.apply();
         } else {
             // User chưa đăng nhập, quay về main activity
@@ -209,6 +214,10 @@ public class DashboardActivity extends AppCompatActivity
         finish();
     }
 
+    /**
+     * @param uid , uid của người cần tìm thông tin
+     *            Hàm điều hướng tới thông tin của một người dùng bất kì
+     */
     public void navigateProfile(String uid) {
         onNavigate(SocialServices.VIEW_PROFILE,uid);
         viewPager.setCurrentItem(1);
@@ -237,10 +246,10 @@ public class DashboardActivity extends AppCompatActivity
     public void onDarkMode(boolean change) {
         if(change) {
             SocialNetwork.isDarkMode = true;
-            changeViewToDarkMode();
+            changeThemeDarkMode();
         }else{
             SocialNetwork.isDarkMode = false;
-            changeViewToLightMode();
+            changeThemeDefault();
         }
         for (final SocialStateListener listener : socialStateListeners) {
             if (listener != null) {
@@ -258,19 +267,28 @@ public class DashboardActivity extends AppCompatActivity
         }
     }
 
-    private void changeViewToLightMode() {
-        toolbar.setBackgroundColor(R.drawable.custom_background_profile2);
+    /*
+     * Thay đổi giao diện về dạng light mode
+     */
+    private void changeThemeDefault() {
         tabLayout.setBackgroundColor(Color.WHITE);
         viewPager.setBackgroundColor(Color.WHITE);
     }
 
-    private void changeViewToDarkMode() {
+    /**
+     * Thay đổi giao diện về dạng dark mode
+     */
+    private void changeThemeDarkMode() {
         recyclerViewComments.setBackgroundColor(R.drawable.custom_background_dark_mode_main);
         toolbar.setBackgroundColor(R.drawable.custom_background_dark_mode_main);
         tabLayout.setBackgroundColor(R.drawable.custom_background_dark_mode_main);
         viewPager.setBackgroundColor(R.drawable.custom_background_dark_mode_main);
     }
 
+
+    /**
+     * @param stateListener , những lớp khai triển callback này
+     */
     public void setSocialStateListener(SocialStateListener stateListener){
         if(stateListener == this) return;
         if(stateListener != null){
@@ -279,7 +297,7 @@ public class DashboardActivity extends AppCompatActivity
     }
 
     /**
-     * Phương thức đăng kí nhận thông báo từ dịch vụ để xử lý
+     * Phương thức đăng kí nhận thông báo từ dịch vụ để xử lý khi dữ liệu trên fire base thay đổi
      */
     private void registerBroadcast() {
         broadcastListener = new BroadcastListener();
@@ -288,9 +306,9 @@ public class DashboardActivity extends AppCompatActivity
     }
 
     /**
-     * @param uid
-     * @param pId,
-     *            Hàm xem comment của bài viết
+     * @param uid, uid của người đăng post
+     * @param pId, id của post
+     *            Hàm di chuyển đến tất comment của bài viết
      */
     private void navigateComment(String uid, final String pId) {
         referencePost.addValueEventListener(new ValueEventListener() {
@@ -329,6 +347,10 @@ public class DashboardActivity extends AppCompatActivity
         });
     }
 
+    /**
+     * @param comment , comment có sự thay đổi
+     *                Hàm cập nhật comment mới
+     */
     private void updateComment(Comment comment) {
         adapterComment = new AdapterComment(this,commentList);
         recyclerViewComments.setAdapter(adapterComment);

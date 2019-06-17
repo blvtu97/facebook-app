@@ -113,7 +113,7 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
             calendar.setTimeInMillis(Long.parseLong(pTime));
             String timePost = DateFormat.format("yyyy/MM/dd hh:mm aa", calendar).toString();
 
-            // Kiểm tra người dùng đã like hay chưa
+            //Kiểm tra người dùng đã like hay chưa
             if(pLike.contains(FirebaseAuth.getInstance().getCurrentUser().getUid())){
                 holder.btnLike.setImageResource(R.drawable.ic_like_on);
                 holder.txtLikePost.setTextColor(Color.BLUE);
@@ -199,7 +199,7 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
             holder.linearShare.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //khai triển sau
+                    //chưa phát triển
                     Toast.makeText(mContext, "Coming soon", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -244,10 +244,14 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
             });
         }
 
-        if(SocialNetwork.isDarkMode) changeDarkMode();
+        if(SocialNetwork.isDarkMode) changeThemeDarkMode();
 
     }
 
+    /**
+     * @param pComment , danh sách comment
+     * @return số lượng comment của post
+     */
     private int getNumCommentOfPost(String pComment) {
         if(TextUtils.isEmpty(pComment))return 0;
         String[] nums = pComment.split(",");
@@ -265,6 +269,13 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
     }
 
 
+    /**
+     * @param btnMore , view sẽ hiển thị popup
+     * @param uid, uid của người dùng
+     * @param pId, uid của bài viết
+     * @param pImage, image của bài viết
+     *                Hàm hiển thị popup menu cho phép người dùng xóa bài viết của mình
+     */
     private void showMoreOptions(ImageView btnMore, String uid,
                                  final String pId, final String pImage) {
         PopupMenu popupMenu = new PopupMenu(mContext,btnMore, Gravity.END);
@@ -283,16 +294,24 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
         popupMenu.show();
     }
 
+    /**
+     * @param pId , id của post
+     * @param pImage, đường dẫn image của bài viết
+     *                Hàm kiểm tra để xóa bài viết có hình hoặc không có hình
+     */
     private void deletePost(String pId, String pImage) {
-        //post can be with or without image
         if(pImage.equals("noImage")){
-            //delete post without image
             deletePostWithoutImage(pId,pImage);
         }else{
             deletePostWithImage(pId,pImage);
         }
     }
 
+    /**
+     * @param pId , id của bài viết
+     * @param pImage, đường dẫn image của bài viết
+     *                Hàm xóa bài viết với bài viết không có hình ảnh
+     */
     private void deletePostWithImage(final String pId, String pImage) {
         final ProgressDialog progressDialog = new ProgressDialog(mContext);
         progressDialog.setMessage("Deleting...");
@@ -337,6 +356,11 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
 
     }
 
+    /**
+     * @param pId , id của bài viết
+     * @param pImage, đường dẫn image của bài viết
+     *                Hàm xóa bài viết với bài viết có hình ảnh
+     */
     private void deletePostWithoutImage(String pId, String pImage) {
         final ProgressDialog progressDialog = new ProgressDialog(mContext);
         progressDialog.setMessage("Deleting...");
@@ -418,7 +442,10 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
         }
     }
 
-    public void changeDarkMode(){
+    /**
+     * Hàm thay đổi giao diện dark mode
+     */
+    public void changeThemeDarkMode(){
         for(int i = 0;i<holderList.size();i++){
             holderList.get(i)
                     .relativeNewsFeedLayout
@@ -439,11 +466,42 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
         }
     }
 
-    public void changeDarkLike(){
+    /**
+     * Hàm đổi giao diện light mode
+     */
+    public void changeThemeDefault(){
         for(int i = 0;i<holderList.size();i++){
             holderList.get(i)
                     .relativeNewsFeedLayout
                     .setBackgroundColor(Color.WHITE);
+
+            holderList.get(i).txtCmtCount
+                    .setTextColor(holderList.get(i).txtCmtCount.getTextColors().getDefaultColor());
+
+            holderList.get(i).txtLikeCount
+                    .setTextColor(holderList.get(i).txtLikeCount.getTextColors().getDefaultColor());
+
+            holderList.get(i).txtLikePost
+                    .setTextColor(holderList.get(i).txtLikePost.getTextColors().getDefaultColor());
+
+            holderList.get(i).txtStatus
+                    .setTextColor(holderList.get(i).txtStatus.getTextColors().getDefaultColor());
+
+            holderList.get(i).txtName
+                    .setTextColor(holderList.get(i).txtName.getTextColors().getDefaultColor());
+
+            holderList.get(i).txtTime
+                    .setTextColor(holderList.get(i).txtTime.getTextColors().getDefaultColor());
+
+            holderList.get(i).txtShare
+                    .setTextColor(holderList.get(i).txtShare.getTextColors().getDefaultColor());
+
+            holderList.get(i).txtCommentPost
+                    .setTextColor(holderList.get(i).txtCommentPost.getTextColors().getDefaultColor());
+
+            Picasso.get().load(R.drawable.ic_like_on).into(holderList.get(i).btnLike);
+            Picasso.get().load(R.drawable.ic_comment).into(holderList.get(i).btnComment);
+            Picasso.get().load(R.drawable.ic_share).into(holderList.get(i).btnShare);
         }
     }
 }

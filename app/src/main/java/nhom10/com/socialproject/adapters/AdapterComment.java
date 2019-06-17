@@ -230,6 +230,11 @@ public class AdapterComment extends RecyclerView.Adapter<AdapterComment.Holder> 
 
     }
 
+    /**
+     * @param pComment , comment của post
+     * @param uid, uid của người dùng
+     * @return
+     */
     private String removeUidFromPost(String pComment, String uid) {
         String[] s = pComment.split(",");
         int k = -1;

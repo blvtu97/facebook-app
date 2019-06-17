@@ -114,11 +114,6 @@ public class HomeFragment extends Fragment implements SocialStateListener {
         if(adapterPost != null){
             recyclerViewPosts.setAdapter(adapterPost);
             adapterPost.notifyDataSetChanged();
-            if(SocialNetwork.isDarkMode){
-                setDarkMode();
-            }else{
-                setLightMode();
-            }
         }
 
     }
@@ -133,11 +128,19 @@ public class HomeFragment extends Fragment implements SocialStateListener {
         return false;
     }
 
+    /**
+     * @param post ,
+     * @return true nếu post này có quan hệ với người dùng hiện tại, ngược lại false
+     */
     private boolean isPostRelateToWithMyself(Post post) {
         User user = SocialNetwork.getUser(post.getUid());
         return isUserRelateToWithMyself(user);
     }
 
+    /**
+     * @param user
+     * @return true nếu user này có quan hệ với người dùng hiện tại, ngược lại false
+     */
     private boolean isUserRelateToWithMyself(User user) {
         if (user.getUid().equals(mUser.getUid())) return true;
         if (user.getFriends().contains(mUser.getUid())) {
@@ -150,6 +153,10 @@ public class HomeFragment extends Fragment implements SocialStateListener {
         return false;
     }
 
+    /**
+     * @param searchQuery , chuỗi cần tìm kiếm
+     *                    Hàm tiếm kiếm nội dung post có liền quan tới searchQuery
+     */
     private void searchPosts(final String searchQuery) {
         postList.clear();
         List<Post> list = SocialNetwork.getPostListCurrent();
@@ -197,12 +204,6 @@ public class HomeFragment extends Fragment implements SocialStateListener {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-                //gọi khi người dùng nhấn tìm kiếm
-               /* if (!TextUtils.isEmpty(s)) {
-                    searchPosts(s);
-                } else {
-                    loadAllPosts();
-                }*/
                 return false;
             }
 
@@ -282,7 +283,9 @@ public class HomeFragment extends Fragment implements SocialStateListener {
     @Override
     public void onDarkMode(boolean change) {
         if(change){
-            setDarkMode();
+            changeThemeDarkMode();
+        }else{
+            changeThemeDefault();
         }
     }
 
@@ -291,13 +294,17 @@ public class HomeFragment extends Fragment implements SocialStateListener {
         loadAllPosts();
     }
 
-    private void setDarkMode(){
-        recyclerViewPosts.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
-        adapterPost.changeDarkMode();
+    private void changeThemeDarkMode(){
+        if(adapterPost != null) {
+            recyclerViewPosts.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+            adapterPost.changeThemeDarkMode();
+        }
     }
 
-    private void setLightMode(){
-        recyclerViewPosts.setBackgroundColor(Color.WHITE);
-        adapterPost.changeDarkMode();
+    private void changeThemeDefault(){
+        if(adapterPost != null) {
+            recyclerViewPosts.setBackgroundColor(Color.WHITE);
+            adapterPost.changeThemeDefault();
+        }
     }
 }

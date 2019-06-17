@@ -84,15 +84,23 @@ public class SocialServices extends Service {
     }
 
 
+    /**
+     * Hàm nhận tất cả dữ liệu từ firebase và lắng nghe mỗi khi fire base có sự thây đổi
+     */
     public void getDatabaseFromFirebase() {
         getAllUsers();
         getAllComments();
         getAllPosts();
-        getChildPostChangeData();
-        getChildUserChangeData();
-        getChildCommentChangeData();
+        listenWhenChildPostChangeData();
+        listenWhenChildUserChangeData();
+        listenWhenChildCommentChangeData();
     }
 
+    /**
+     * @param uid , uid của người cần xem thông tin
+     *            Hàm gửi broadcast tới dashboard activity để điều hướng tới thông tin của người
+     *            dùng
+     */
     public void senBroadcastToNavigateUid(String uid) {
         Intent intent = new Intent();
         intent.putExtra(VIEW_TYPE, VIEW_PROFILE);
@@ -101,6 +109,10 @@ public class SocialServices extends Service {
         sendBroadcast(intent);
     }
 
+    /**
+     * @param post , post
+     *            Hàm gửi broadcast tới dashboard activity để điều hướng tới comment của post này
+     */
     public void senBroadcastToNavigateCommentOf(Post post) {
         Intent intent = new Intent();
         intent.putExtra(VIEW_TYPE, VIEW_COMMENT_POST);
@@ -110,6 +122,12 @@ public class SocialServices extends Service {
         sendBroadcast(intent);
     }
 
+    /**
+     * @param type , loại dữ liệu thay đổi
+     * @param object, đối tượng bị thay đổi
+     *                 Hàm gửi broadcast tới dashboard activity để activity này cập nhật dữ liệu
+     *                cần thay đổi
+     */
     public void senBroadcastToUpdateData(String type, Serializable object) {
         Intent intent = new Intent();
         Bundle bundle = new Bundle();
@@ -124,10 +142,17 @@ public class SocialServices extends Service {
         return mUser;
     }
 
+    /**
+     * @return true nếu nhận dữ liệu thành công từ firebase, ngược lại false
+     */
     public boolean isReceiveDataSuccessfully() {
         return isHaveUsers && isHaveComments && isHavePosts;
     }
 
+    /**
+     * Hàm nhận tất cả user từ firebase ở lần đầu tiên hàm được gọi và nhận tất cả thay đổi mới
+     * nhất nếu fire base có sự thay đổi dữ liệu user
+     */
     private void getAllUsers() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("User");
         ref.addValueEventListener(new ValueEventListener() {
@@ -182,6 +207,10 @@ public class SocialServices extends Service {
         return "";
     }
 
+    /**
+     * Hàm nhận tất cả post từ firebase ở lần đầu tiên hàm được gọi và nhận tất cả thay đổi mới
+     * nhất nếu fire base có sự thay đổi dữ liệu post
+     */
     private void getAllPosts() {
         // Đường dẫn tới tất cả các post
         FirebaseDatabase.getInstance()
@@ -210,6 +239,10 @@ public class SocialServices extends Service {
         return postListCurrent;
     }
 
+    /**
+     * Hàm nhận tất cả comment từ firebase ở lần đầu tiên hàm được gọi và nhận tất cả thay đổi mới
+     * nhất nếu fire base có sự thay đổi dữ liệu comment
+     */
     private void getAllComments() {
         // Đường dẫn tới tất cả các post
         FirebaseDatabase.getInstance()
@@ -234,7 +267,10 @@ public class SocialServices extends Service {
                 });
     }
 
-    private void getChildUserChangeData() {
+    /**
+     * Hàm lắng nghe sự thay đổi mỗi khi dữ liệu user thay đổi trên firebase
+     */
+    private void listenWhenChildUserChangeData() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("User");
         ref.addChildEventListener(new ChildEventListener() {
             @Override
@@ -265,7 +301,10 @@ public class SocialServices extends Service {
         });
     }
 
-    private void getChildPostChangeData() {
+    /**
+     * Hàm lắng nghe sự thay đổi mỗi khi dữ liệu post thay đổi trên firebase
+     */
+    private void listenWhenChildPostChangeData() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Posts");
         ref.addChildEventListener(new ChildEventListener() {
             @Override
@@ -298,7 +337,10 @@ public class SocialServices extends Service {
         });
     }
 
-    private void getChildCommentChangeData() {
+    /**
+     * Hàm lắng nghe sự thay đổi mỗi khi dữ liệu comment thay đổi trên firebase
+     */
+    private void listenWhenChildCommentChangeData() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Comments");
         ref.addChildEventListener(new ChildEventListener() {
             @Override

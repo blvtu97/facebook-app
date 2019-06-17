@@ -2,6 +2,7 @@ package nhom10.com.socialproject.fragments;
 
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -173,11 +174,13 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
     @Override
     public void onResume() {
         super.onResume();
+
+        if(!SocialNetwork.isReceiveDataSuccessfully()){
+            SocialNetwork.getDatabaseFromFirebase();
+        }
+
         if(adapterUser != null){
             recyclerViewUsers.setAdapter(adapterUser);
-        }
-        if(SocialNetwork.isDarkMode){
-            setDarkMode();
         }
     }
 
@@ -275,7 +278,9 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
     @Override
     public void onDarkMode(boolean change) {
         if(change){
-            setDarkMode();
+            changeThemeDarkMode();
+        }else{
+            changeThemeDefault();
         }
     }
 
@@ -284,9 +289,17 @@ public class UsersFragment extends Fragment implements  SocialStateListener {
         getAllUsers2();
     }
 
-    private void setDarkMode(){
-        recyclerViewUsers.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
-        adapterUser.changeDarkMode();
+    private void changeThemeDarkMode(){
+        if(adapterUser != null) {
+            recyclerViewUsers.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+            adapterUser.changeThemeDarkMode();
+        }
     }
 
+    private void changeThemeDefault(){
+        if(adapterUser != null) {
+            recyclerViewUsers.setBackgroundColor(Color.WHITE);
+            adapterUser.changeThemeDefault();
+        }
+    }
 }

@@ -95,6 +95,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    /**
+     * Hàm khởi tạo animation load app
+     */
     private void initAnimation(){
         final Animation animTransaction = AnimationUtils.loadAnimation(this,R.anim.anim_transaction);
         final Animation animRotate = AnimationUtils.loadAnimation(this,R.anim.anim_rotate);

@@ -353,9 +353,6 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         if (adapterProfiles != null) {
             recyclerViewProfiles.setAdapter(adapterProfiles);
             adapterProfiles.notifyDataSetChanged();
-            if (SocialNetwork.isDarkMode) {
-                setDarkMode();
-            }
         }
     }
 
@@ -958,7 +955,9 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
     @Override
     public void onDarkMode(boolean change) {
         if (change) {
-            setDarkMode();
+            changeThemeDarkMode();
+        }else {
+            changeThemeDefault();
         }
     }
 
@@ -967,13 +966,27 @@ public class ProfileFragment extends Fragment implements SocialStateListener {
         loadAllPosts();
     }
 
-    private void setDarkMode(){
-        recyclerViewProfiles.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
-        floatingActionButton.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
-        linearLayout.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
-        txtName.setTextColor(Color.WHITE);
-        txtEmail.setTextColor(Color.WHITE);
-        txtPhone.setTextColor(Color.WHITE);
-        adapterProfiles.changeDarkMode();
+    private void changeThemeDarkMode(){
+        if(adapterProfiles != null) {
+            recyclerViewProfiles.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+            floatingActionButton.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+            linearLayout.setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+            txtName.setTextColor(Color.WHITE);
+            txtEmail.setTextColor(Color.WHITE);
+            txtPhone.setTextColor(Color.WHITE);
+            adapterProfiles.changeThemeDarkMode();
+        }
+    }
+
+    private void changeThemeDefault(){
+        if(adapterProfiles != null) {
+            recyclerViewProfiles.setBackgroundColor(Color.WHITE);
+            floatingActionButton.setBackgroundColor(Color.WHITE);
+            linearLayout.setBackgroundColor(Color.WHITE);
+            txtName.setTextColor(txtName.getTextColors().getDefaultColor());
+            txtEmail.setTextColor(txtEmail.getTextColors().getDefaultColor());
+            txtPhone.setTextColor(txtPhone.getTextColors().getDefaultColor());
+            adapterProfiles.changeThemeDefault();
+        }
     }
 }

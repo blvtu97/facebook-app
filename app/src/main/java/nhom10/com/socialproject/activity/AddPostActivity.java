@@ -96,6 +96,9 @@ public class AddPostActivity extends AppCompatActivity {
         initializeUI();
     }
 
+    /**
+     * Khởi tạo và ánh xạ các views
+     */
     private void initializeUI(){
         toolbar = findViewById(R.id.toolbarAddPost);
         setSupportActionBar(toolbar);
@@ -162,15 +165,20 @@ public class AddPostActivity extends AppCompatActivity {
         storagePermissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
     }
 
+    /**
+     * Chọn ảnh từ gallery
+     */
     private void pickFromGallery() {
         Intent galleryIntent = new Intent(Intent.ACTION_PICK);
         galleryIntent.setType("image/*");
         startActivityForResult(galleryIntent,IMAGE_PICK_FROM_GALLERY_CODE);
     }
 
+    /**
+     * Chọn ảnh từ camera
+     */
     private void pickFromCamera() {
         //Khởi tạo đường dẫn đến file hình
-
         //Khởi tạo giá trị cần lưu vào dữ liệu
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE,"Temp pic");
@@ -188,7 +196,7 @@ public class AddPostActivity extends AppCompatActivity {
     }
 
     /**
-     * @return true nếu quyền đã được cấp phép, ngược lại false
+     * @return true nếu quyền lưu trữ đã được cấp phép, ngược lại false
      */
     private boolean checkStoragePermissions(){
         boolean result = ContextCompat.checkSelfPermission(this,
@@ -204,7 +212,7 @@ public class AddPostActivity extends AppCompatActivity {
     }
 
     /**
-     * @return true nếu quyền đã được cấp phép, ngược lại false
+     * @return true nếu quyền camera đã được cấp phép, ngược lại false
      */
     private boolean checkCameraPermissions(){
 
@@ -224,6 +232,9 @@ public class AddPostActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this,cameraPermissions,CAMERA_REQUEST_CODE);
     }
 
+    /**
+     * Hàm cập nhật thông tin user
+     */
     private void updateInfoUser(){
         Query query = databaseReference.orderByChild("email").equalTo(mUser.getEmail());
         query.addValueEventListener(new ValueEventListener() {
@@ -237,6 +248,7 @@ public class AddPostActivity extends AppCompatActivity {
                     email = ds.child("email").getValue().toString();
                     dp    = ds.child("image").getValue().toString();
                     uid   = ds.child("uid").getValue().toString();
+
                     //Thiết lập dữ liệu
                     txtUserName.setText(name);
 
@@ -253,10 +265,13 @@ public class AddPostActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Toast.makeText(AddPostActivity.this,
+                        databaseError.getMessage(),
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
+
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
@@ -288,17 +303,18 @@ public class AddPostActivity extends AppCompatActivity {
     }
 
     /**
-     * @param status , tiêu đề
-     * @param uri, uri ảnh
-     *                 Upload post lên firebase
+     * @param status , tiêu đề của post
+     * @param uri, uri ảnh của post
+     *                 Upload post lên database firebase
      */
     private void uploadData(final String status, final String uri) {
         progressDialog.setMessage("Creating new post...");
         progressDialog.show();
 
-        //for post-image name, post id, post-publish-time
+        //mỗi post được đăng sẽ có một thời gian xác định, lấy mốc này làm id của post
         final String timestamp = String.valueOf(System.currentTimeMillis());
 
+        //đường dẫn image của post trên storage firebase nếu post có ảnh
         String filePathAndName = "Posts/post_" + timestamp;
         if (!uri.equals("noImage")) {
             //post with image
@@ -315,12 +331,12 @@ public class AddPostActivity extends AppCompatActivity {
 
                             //Nếu ảnh được upload thành công
                             if (uriTask.isSuccessful()) {
-                                //Thêm hoặc cập nhật vào user's database
-                             /*Tham số đầu tiên là isProfileOrCover có giá trị 'image' hoặc 'cover'
-                             là các key trong user's database nơi url của hình ảnh sẽ được lưu.
+                                /* Thêm hoặc cập nhật vào user's database
+                                * Tham số đầu tiên là isProfileOrCover có giá trị 'image' hoặc 'cover'
+                                * là các key trong user's database nơi url của hình ảnh sẽ được lưu.
 
-                             Tham số thứ hai chứa url của hình ảnh được lưu trữ trong bộ lưu trữ firebase,
-                              url này sẽ được lưu dưới dạng string so với khóa 'image' hoặc 'cover'*/
+                                * Tham số thứ hai chứa url của hình ảnh được lưu trữ trong bộ lưu trữ firebase,
+                                * url này sẽ được lưu dưới dạng string so với khóa 'image' hoặc 'cover'*/
                                 HashMap<String, Object> hashMap = new HashMap<>();
                                 hashMap.put("uid", uid);
                                 hashMap.put("pId", timestamp);
@@ -330,6 +346,7 @@ public class AddPostActivity extends AppCompatActivity {
                                 hashMap.put("pMode",txtPrivacy.getText());
                                 hashMap.put("pLike","");
                                 hashMap.put("pComment","");
+
                                 //path to store data
                                 DatabaseReference ref =
                                         FirebaseDatabase.getInstance().getReference("Posts");
@@ -371,13 +388,6 @@ public class AddPostActivity extends AppCompatActivity {
             });
 
         }else{
-
-            //Thêm hoặc cập nhật vào user's database
-                             /*Tham số đầu tiên là isProfileOrCover có giá trị 'image' hoặc 'cover'
-                             là các key trong user's database nơi url của hình ảnh sẽ được lưu.
-
-                             Tham số thứ hai chứa url của hình ảnh được lưu trữ trong bộ lưu trữ firebase,
-                              url này sẽ được lưu dưới dạng string so với khóa 'image' hoặc 'cover'*/
             HashMap<String, Object> hashMap = new HashMap<>();
             hashMap.put("uid", uid);
             hashMap.put("pId", timestamp);
@@ -453,14 +463,14 @@ public class AddPostActivity extends AppCompatActivity {
     }
 
     /*
-     * Hàm xử lý kết quả xin cấp quyền
+     * Hàm xử lý kết quả xin cấp quyền của người dùng
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
         switch (requestCode){
+            // check kết quả quyền camera
             case CAMERA_REQUEST_CODE:
-                //
                 if(grantResults.length>0){
                     boolean cameraAccept = grantResults[0] == PackageManager.PERMISSION_GRANTED;
                     boolean storageAccept = grantResults[1] == PackageManager.PERMISSION_GRANTED;
@@ -475,6 +485,7 @@ public class AddPostActivity extends AppCompatActivity {
 
                 }
                 break;
+                // check kết quả quyền lưu trữ
             case STORAGE_REQUEST_CODE:
                 //
                 if(grantResults.length>0){

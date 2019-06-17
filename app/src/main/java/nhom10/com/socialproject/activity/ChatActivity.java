@@ -41,6 +41,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -79,6 +80,7 @@ import nhom10.com.socialproject.notifications.Data;
 import nhom10.com.socialproject.notifications.Response;
 import nhom10.com.socialproject.notifications.Sender;
 import nhom10.com.socialproject.notifications.Token;
+import nhom10.com.socialproject.services.SocialNetwork;
 import nhom10.com.socialproject.widgets.TypingVisualizer;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -125,9 +127,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private AdapterChat adapterChat;
 
-    //UI
-    private Toolbar toolbar;
-
+    //Views
     private RecyclerView recyclerView;
 
     private ImageView imgProfile;
@@ -143,7 +143,6 @@ public class ChatActivity extends AppCompatActivity {
     private TypingVisualizer typingVisualizer;
 
     //
-
     private String hisUid;
 
     private String hisImage;
@@ -161,10 +160,8 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-
-        ActivityCompat.requestPermissions(ChatActivity.this, REQUESTED_PERMISSIONS, PERMISSION_REQ_ID);
-
-
+        ActivityCompat.requestPermissions(ChatActivity.this,
+                REQUESTED_PERMISSIONS, PERMISSION_REQ_ID);
         initializeUI();
     }
 
@@ -175,6 +172,7 @@ public class ChatActivity extends AppCompatActivity {
         checkOnlineStatus("online");
         super.onStart();
     }
+
 
     @Override
     protected void onPause() {
@@ -200,6 +198,9 @@ public class ChatActivity extends AppCompatActivity {
         super.onResume();
     }
 
+    /**
+     * Hàm khởi tạo và ánh xạ các views
+     */
     @SuppressLint("ClickableViewAccessibility")
     private void initializeUI(){
 
@@ -219,32 +220,30 @@ public class ChatActivity extends AppCompatActivity {
         btnSend      = findViewById(R.id.btnSend);
         btnVideoCall = findViewById(R.id.btnVideoCall);
         btnSendImg   = findViewById(R.id.btn_Img_Send);
-        //Layout linear for recycler view
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setStackFromEnd(true);
 
+        //Layout linear cho recycler view
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setStackFromEnd(true);
+        layoutManager.setReverseLayout(true);
+
+        recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(linearLayoutManager);
 
         //create API service
         apiService = Client.getRetrofit("https://fcm.googleapis.com/").create(APIService.class);
-
-
 
         mAuth        = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
         databaseReference = firebaseDatabase.getReference("User");
         firebaseStorage = FirebaseStorage.getInstance().getReference();
 
-        //Khi click vào một user ta có uid. Chúng ta sử dụng UID này để có được hình ảnh và bắt
+        //Khi click vào một user ta có uid. Chúng ta sử dụng uid này để có được hình ảnh và bắt
         //đầu trò chuyện cùng người đó
         Intent intent = getIntent();
         hisUid = intent.getStringExtra("hisUid");
 
         //Tìm kiếm thông tin bạn chat
         Query query = databaseReference.orderByChild("uid").equalTo(hisUid);
-
-        //Nhận tên và hình ảnh bạn chat
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -282,12 +281,11 @@ public class ChatActivity extends AppCompatActivity {
                     //Set data
                     txtName.setText(name);
                     try{
-                        Picasso.get()
-                                .load(hisImage)
+                        Glide.with(ChatActivity.this) .load(hisImage)
                                 .placeholder(R.drawable.ic_user_anonymous)
                                 .into(imgProfile);
                     }catch (Exception e){
-                        Picasso.get()
+                        Glide.with(ChatActivity.this)
                                 .load(R.drawable.ic_user_anonymous)
                                 .into(imgProfile);
                     }
@@ -482,9 +480,14 @@ public class ChatActivity extends AppCompatActivity {
                         chatList.add(chat);
                     }
                 }
-                adapterChat = new AdapterChat(ChatActivity.this,chatList,hisImage);
-                adapterChat.notifyDataSetChanged();
-                recyclerView.setAdapter(adapterChat);
+                if(adapterChat == null){
+                    adapterChat = new AdapterChat(ChatActivity.this,chatList,hisImage);
+                    recyclerView.setAdapter(adapterChat);
+                }else{
+                    adapterChat.setChatList(chatList);
+                    adapterChat.notifyDataSetChanged();
+                }
+
             }
 
             @Override
@@ -495,7 +498,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     /**
-     * @param message , nội dung cần gửi
+     * @param message , nội dung tin nhắn cần gửi
      *                Hàm gửi nội dung tin nhắn đến bạn chat
      */
     private void sendMessage(final String message) {
@@ -544,6 +547,9 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Hàm gửi âm thanh cho bạn chat
+     */
     private void sendVoiceMessage() {
         final String mCurrentUserId = mAuth.getCurrentUser().getUid();
         final String nameRandom = myUid + hisUid + SystemClock.currentThreadTimeMillis() + ".3gp";
@@ -599,10 +605,13 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * @param imageUri, đường dẫn của ảnh
+     *                  Hàm gửi hình ảnh cho bạn chat
+     */
     private void sendImageMessage(Uri imageUri){
         final String mCurrentUserId = mAuth.getCurrentUser().getUid();
         final String nameRandom = myUid + hisUid + SystemClock.currentThreadTimeMillis() + ".jpg";
-
         final StorageReference filepath = firebaseStorage.child("Message_Images").child(nameRandom);
         filepath.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
             @Override
@@ -653,6 +662,12 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * @param hisUid , uid của bạn chat
+     * @param name, tên của bạn chat
+     * @param message, nội đung tin nhắn của bạn chat
+     *                 Hàm gửi notification cho điện thoại khi bạn chat gửi tin nhắn đến người dùng
+     */
     private void sendNotifications(final String hisUid, final String name, final String message) {
         DatabaseReference allTokens = FirebaseDatabase.getInstance().getReference("Tokens");
         Query query = allTokens.orderByKey().equalTo(hisUid);
@@ -708,7 +723,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     /**
-     * @param status , trạng thái của người dùng đang on hay off
+     * @param status , trạng thái của người dùng đang online hay offline
      *               Hàm thay đổi trạng thái của người dùng hiện tại
      */
     private void checkOnlineStatus(String status){
@@ -749,6 +764,9 @@ public class ChatActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Hàm tạo room với bạn chat để để gọi video call
+     */
     private void setupToCallVideo() {
 
         // Tìm phòng
@@ -761,7 +779,7 @@ public class ChatActivity extends AppCompatActivity {
                         String timestamp = String.valueOf(System.currentTimeMillis());
                         for(DataSnapshot ds:dataSnapshot.getChildren()){
                             Room room = ds.getValue(Room.class);
-                            if(room.getUser1().equals(myUid) ||
+                            if(room.getUser1().equals(hisUid) &&
                                room.getUser2().equals(myUid)){
                                 //Đã có room
 

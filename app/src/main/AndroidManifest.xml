@@ -26,9 +26,6 @@
         android:theme="@style/AppTheme">
 
         <activity android:name="nhom10.com.socialproject.activity.VideoCallActivity"></activity>
-        <activity android:name="nhom10.com.socialproject.activity.ViewCommentPostActivity" />
-        <activity android:name="nhom10.com.socialproject.activity.ViewImagePostActivity" />
-        <activity android:name="nhom10.com.socialproject.activity.ProfileActivity" />
         <activity android:name="nhom10.com.socialproject.activity.PrivacyActivity" />
         <activity android:name="nhom10.com.socialproject.activity.AddPostActivity" />
         <activity

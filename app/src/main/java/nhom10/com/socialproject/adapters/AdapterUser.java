@@ -73,9 +73,6 @@ public class AdapterUser extends RecyclerView.Adapter<AdapterUser.Holder> {
 
             }
         });
-        if(SocialNetwork.isDarkMode){
-            changeDarkMode();
-        }
     }
 
     @Override
@@ -100,11 +97,22 @@ public class AdapterUser extends RecyclerView.Adapter<AdapterUser.Holder> {
         }
     }
 
-    public void changeDarkMode() {
+    public void changeThemeDarkMode() {
         for(int i = 0;i<holderList.size();i++){
-            holderList.get(i).cardView.setCardBackgroundColor(R.drawable.custom_background_row_user_dark);
+            holderList.get(i).cardView
+                    .setCardBackgroundColor(R.drawable.custom_background_row_user_dark);
             holderList.get(i).txtEmail.setTextColor(Color.WHITE);
             holderList.get(i).txtName.setTextColor(Color.WHITE);
+        }
+    }
+
+    public void changeThemeDefault() {
+        for(int i = 0;i<holderList.size();i++){
+            holderList.get(i).cardView.setCardBackgroundColor(R.drawable.custom_card_view);
+            holderList.get(i).txtEmail
+                    .setTextColor(holderList.get(i).txtEmail.getTextColors().getDefaultColor());
+            holderList.get(i).txtName
+                    .setTextColor(holderList.get(i).txtName.getTextColors().getDefaultColor());
         }
     }
 }

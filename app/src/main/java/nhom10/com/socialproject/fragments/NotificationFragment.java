@@ -151,6 +151,9 @@ public class NotificationFragment extends Fragment implements SocialStateListene
         if(change) {
             frameNotificationLayout
                     .setBackgroundResource(R.drawable.custom_background_dark_mode_main);
+        }else{
+            frameNotificationLayout
+                    .setBackgroundResource(R.drawable.custom_background_notifications);
         }
     }
 
@@ -162,9 +165,5 @@ public class NotificationFragment extends Fragment implements SocialStateListene
     @Override
     public void onResume() {
         super.onResume();
-        if(SocialNetwork.isDarkMode){
-            frameNotificationLayout
-                    .setBackgroundResource(R.drawable.custom_background_dark_mode_main);
-        }
     }
 }

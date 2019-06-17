@@ -60,11 +60,14 @@ public class SocialNetwork {
     }
 
     public static boolean isReceiveDataSuccessfully(){
-        return  socialServices.isReceiveDataSuccessfully();
+        if(socialServices != null) {
+            return socialServices.isReceiveDataSuccessfully();
+        }
+        return false;
     }
 
     public static void getDatabaseFromFirebase(){
-        if(socialServices!=null){
+        if(socialServices != null){
             socialServices.getDatabaseFromFirebase();
         }
     }

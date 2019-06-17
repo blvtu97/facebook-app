@@ -205,9 +205,12 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
             }
         });
 
-        if(SocialNetwork.isDarkMode) changeDarkMode();
     }
 
+    /**
+     * @param pComment , chuỗi chứa số lượng uid đã comment
+     * @return số comment
+     */
     private int getNumCommentOfPost(String pComment) {
         if(TextUtils.isEmpty(pComment))return 0;
         String[] nums = pComment.split(",");
@@ -215,7 +218,7 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
     }
 
     /**
-     * @param pLike ,chuỗi chứa số lượng uid like
+     * @param pLike ,chuỗi chứa số lượng uid đã nhấn like
      * @return số like
      */
     private int getNumLikeOfPost(String pLike) {
@@ -367,7 +370,7 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
         }
     }
 
-    public void changeDarkMode(){
+    public void changeThemeDarkMode(){
         for(int i = 0;i<holderList.size();i++){
             holderList.get(i)
                     .relativeNewsFeedLayout
@@ -384,6 +387,40 @@ public class AdapterProfiles extends RecyclerView.Adapter<AdapterProfiles.Holder
             Picasso.get().load(R.drawable.ic_like_dark_off).into(holderList.get(i).btnLike);
             Picasso.get().load(R.drawable.ic_comment_dark).into(holderList.get(i).btnComment);
             Picasso.get().load(R.drawable.ic_share_dark).into(holderList.get(i).btnShare);
+        }
+    }
+
+    public void changeThemeDefault(){
+        for(int i = 0;i<holderList.size();i++){
+            holderList.get(i)
+                    .relativeNewsFeedLayout
+                    .setBackgroundColor(Color.WHITE);
+
+            holderList.get(i).txtCmtCount
+                    .setTextColor(holderList.get(i).txtCmtCount.getTextColors().getDefaultColor());
+
+            holderList.get(i).txtLikePost
+                    .setTextColor(holderList.get(i).txtLikePost.getTextColors().getDefaultColor());
+
+            holderList.get(i).txtStatus
+                    .setTextColor(holderList.get(i).txtStatus.getTextColors().getDefaultColor());
+
+            holderList.get(i).txtName
+                    .setTextColor(holderList.get(i).txtName.getTextColors().getDefaultColor());
+
+            holderList.get(i).txtTime
+                    .setTextColor(holderList.get(i).txtTime.getTextColors().getDefaultColor());
+
+            holderList.get(i).txtShare
+                    .setTextColor(holderList.get(i).txtShare.getTextColors().getDefaultColor());
+
+
+            holderList.get(i).txtCommentPost
+                    .setTextColor(holderList.get(i).txtCommentPost.getTextColors().getDefaultColor());
+
+            Picasso.get().load(R.drawable.ic_like_off).into(holderList.get(i).btnLike);
+            Picasso.get().load(R.drawable.ic_comment).into(holderList.get(i).btnComment);
+            Picasso.get().load(R.drawable.ic_share).into(holderList.get(i).btnShare);
         }
     }
 }

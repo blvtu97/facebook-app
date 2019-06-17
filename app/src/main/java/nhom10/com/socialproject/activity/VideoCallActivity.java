@@ -27,6 +27,9 @@ import nhom10.com.socialproject.R;
 
 public class VideoCallActivity extends AppCompatActivity {
 
+    // Khai báo thuộc tính lớp để lưu trữ thể hiện của RtcEngine.
+    private RtcEngine mRtcEngine;
+
     // Permissions
     private static final int PERMISSION_REQ_ID = 22;
     private static final String[] REQUESTED_PERMISSIONS =
@@ -59,8 +62,10 @@ public class VideoCallActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * @return true nếu ứng dụng được cấp quyền camera và audio, ngược lại false
+     */
     private boolean checkCameraPermissions(){
-        //Nếu ứng dụng có quyền này thì trả về PackageManager.PERMISSION_GRANTED
         boolean result1 = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.CAMERA) == (PackageManager.PERMISSION_GRANTED);
 
@@ -69,6 +74,9 @@ public class VideoCallActivity extends AppCompatActivity {
         return result1 && result2;
     }
 
+    /**
+     * Yêu cầu cấp quyền camera và audio để được call video
+     */
     public void requestPermissionsVideoCall(){
         ActivityCompat.requestPermissions(this,
                 REQUESTED_PERMISSIONS,
@@ -103,16 +111,14 @@ public class VideoCallActivity extends AppCompatActivity {
         }
     }
 
-    // Khởi tạo SDK Agora.io
-    /* Trước khi chúng ta có thể đi sâu vào việc khởi tạo, chúng ta cần đảm bảo rằng Hoạt động của
+    /* Khởi tạo SDK Agora.io
+     * Trước khi chúng ta có thể đi sâu vào việc khởi tạo, chúng ta cần đảm bảo rằng hoạt động của
      * chúng ta có quyền truy cập vào một phiên bản của Agora.io RtcEngine.
-     * */
+     */
 
-    // Khai báo thuộc tính lớp để lưu trữ thể hiện của RtcEngine.
-    private RtcEngine mRtcEngine;
-
-    // Tạo một phiên bản mới của RtcEngine bằng cách sử dụng baseContext, id ứng dụng Agora(đã khai
-    // báo và một phiên bản của RtcEngineEventHandler
+    /* Tạo một phiên bản mới của RtcEngine bằng cách sử dụng baseContext, id ứng dụng Agora(đã khai
+     * báo và một phiên bản của RtcEngineEventHandler
+     */
     private void initAgoraEngine() {
         try {
             //Lấy được phiên bản mới nhất của RtcEngine
@@ -120,20 +126,18 @@ public class VideoCallActivity extends AppCompatActivity {
                     RtcEngine.create(getBaseContext(), getString(R.string.agora_app_id), mRtcEventHandler);
         } catch (Exception e) {
             Log.e(LOG_TAG, Log.getStackTraceString(e));
-
             throw new RuntimeException("NEED TO check rtc sdk init fatal error\n" +
                     Log.getStackTraceString(e));
         }
         setupSession();
     }
 
-    // Thiết lập phiên của người dùng. Ở đây chúng ta có thể set Channel Profile to Communication,
-    // vì đây là trò chuyện video chứ không phải broadcast
+    /* Thiết lập phiên của người dùng. Ở đây chúng ta có thể set channel Profile to Communication,
+     * vì đây là trò chuyện video chứ không phải broadcast
+     */
     private void setupSession() {
         mRtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_COMMUNICATION);
-
         mRtcEngine.enableVideo();
-
         mRtcEngine
                 .setVideoEncoderConfiguration(new VideoEncoderConfiguration(
                         VideoEncoderConfiguration.VD_1920x1080,
@@ -142,26 +146,29 @@ public class VideoCallActivity extends AppCompatActivity {
                         VideoEncoderConfiguration.ORIENTATION_MODE.ORIENTATION_MODE_FIXED_PORTRAIT));
     }
 
+    /**
+     * Setup video trên máy người dùng hiện tại
+     */
     private void setupLocalVideoFeed() {
-        //tham chiếu cho view sẽ đóng vai trò là chế độ xem chính cho luồng video .
+        //tham chiếu đến view sẽ đóng vai trò là chế độ xem chính cho luồng video (video thu nhỏ
+        //hiển thị người dùng hiện tại)
         FrameLayout videoContainer = findViewById(R.id.floating_video_container);
 
         // Bước thứ hai là sử dụng RtcEngine để tạo ra một SurfaceView rằng sẽ làm cho dòng từ camera
-        // phía trước, chúng tôi cũng đặt mới videoSurface để hiển thị trên đầu view parent
+        // phía trước, đặt mới videoSurface để hiển thị trên đầu view parent
         SurfaceView videoSurface = RtcEngine.CreateRendererView(getBaseContext());
 
         //Bước tiếp theo là thêm phần videoSurface dưới dạng phần tử giao diện người dùng
         videoSurface.setZOrderMediaOverlay(true);
         videoContainer.addView(videoSurface);
 
-        //Đểể trống tham số uid để SDK có thể xử lý việc tạo id động cho mỗi người dùng.
+        //Để trống tham số uid để SDK có thể xử lý việc tạo id động cho mỗi người dùng.
         mRtcEngine.setupLocalVideo(new VideoCanvas(videoSurface, VideoCanvas.RENDER_MODE_FIT, 0));
-
-
     }
 
-    // Thiết lập nguồn cấp dữ liệu video cục bộ, chúng ta cần sử dụng một chức năng tương tự
-    // để kết nối luồng video từ xa.
+    /* Thiết lập nguồn cấp dữ liệu video cục bộ, chúng ta cần sử dụng một chức năng tương tự
+     * để kết nối luồng video từ xa.
+     */
     private void setupRemoteVideoStream(int uid) {
         FrameLayout videoContainer = findViewById(R.id.bg_video_container);
         SurfaceView videoSurface = RtcEngine.CreateRendererView(getBaseContext());
@@ -174,12 +181,11 @@ public class VideoCallActivity extends AppCompatActivity {
         // tùy chọn quay lại trong trường hợp video xuống cấp, engine sẽ chỉ trở lại âm thanh.
     }
 
-    // Thiết lập Trình xử lý sự kiện SDK
-
-    // Trước đó đã tham chiếu đến RtcEngineEventHandler , và khái báo engine này là
-    // của MainActivity. Công cụ sẽ gọi các phương thức này từ RtcEngineEventHandler .
-
-    // Handle SDK Events
+    /* Thiết lập trình xử lý sự kiện SDK
+       Trước đó đã tham chiếu đến RtcEngineEventHandler , và khái báo engine này là
+       của MainActivity. Công cụ sẽ gọi các phương thức này từ RtcEngineEventHandler .
+       Handle SDK Events
+    */
     private final IRtcEngineEventHandler mRtcEventHandler = new IRtcEngineEventHandler() {
         @Override
         public void onFirstRemoteVideoDecoded(final int uid, int width, int height, int elapsed) {
@@ -214,11 +220,11 @@ public class VideoCallActivity extends AppCompatActivity {
         }
     };
 
-    // Each event triggers some fairly straight forward functions,
-    // including one we wrote in the previous step
+    /* Each event triggers some fairly straight forward functions,
+     * including one we wrote in the previous step
+     */
     private void onRemoteUserVideoToggle(int uid, boolean toggle) {
         FrameLayout videoContainer = findViewById(R.id.bg_video_container);
-
         SurfaceView videoSurface = (SurfaceView) videoContainer.getChildAt(0);
         videoSurface.setVisibility(toggle ? View.GONE : View.VISIBLE);
 
@@ -235,6 +241,7 @@ public class VideoCallActivity extends AppCompatActivity {
         }
     }
 
+    // Người dùng từ xa rời khởi kênh thì xóa video parent
     private void onRemoteUserLeft() {
         removeVideo(R.id.bg_video_container);
     }
@@ -244,8 +251,9 @@ public class VideoCallActivity extends AppCompatActivity {
         videoContainer.removeAllViews();
     }
 
-    // Tham gia và rời khỏi kênh
-    //Lưu ý: nếu bạn không chỉ định uid khi tham gia kênh, công cụ sẽ chỉ định một uid default
+    /* Tham gia và rời khỏi kênh
+     * Lưu ý: nếu không chỉ định uid khi tham gia kênh, công cụ sẽ chỉ định một uid default
+     */
     public void onjoinChannelClicked(String roomId) {
         mRtcEngine.joinChannel(null,
                 roomId,
@@ -257,7 +265,9 @@ public class VideoCallActivity extends AppCompatActivity {
     }
 
 
-    //Rời khỏi kênh
+    /*
+       Hàm rời khỏi kênh
+     */
     public void onLeaveChannelClicked(View view) {
         leaveChannel();
         FrameLayout videoContainer1 = findViewById(R.id.floating_video_container);
@@ -276,9 +286,10 @@ public class VideoCallActivity extends AppCompatActivity {
         videoContainer.removeAllViews();
     }
 
-    // Đầu tiên, chúng tôi nhận được tham chiếu đến nút của chúng tôi, và sau đó kiểm tra xem nó
-    // đã được bật/tắt bằng cách sử dụng chưa isSelected(). Khi chúng tôi đã cập nhật trạng thái
-    // thành phần UI, chúng tôi chuyển trạng thái cập nhật của nút cho công cụ.
+    /* Đầu tiên,  nhận được tham chiếu đến node của người dùng hiện tại, và sau đó kiểm tra xem nó
+     * đã được bật/tắt bằng cách sử dụng chưa isSelected(). Khi đã cập nhật trạng thái
+     * thành phần UI, chúng ta chuyển trạng thái cập nhật của nút cho công cụ.
+     */
     public void onAudioMuteClicked(View view) {
         ImageView btn = (ImageView) view;
         if (btn.isSelected()) {
@@ -292,9 +303,10 @@ public class VideoCallActivity extends AppCompatActivity {
         mRtcEngine.muteLocalAudioStream(btn.isSelected());
     }
 
-    //Cũng như chuyển đổi âm thanh, chúng tôi kiểm tra / cập nhật trạng thái của nút bằng cách sử dụng
-    // isSelected()và sau đó chuyển nó sang động cơ. Để thể hiện hình ảnh tốt hơn của video bị
-    // tắt tiếng, chúng tôi ẩn / hiển thị videoSurface.
+    /* Cũng như chuyển đổi âm thanh, chúng ta kiểm tra/cập nhật trạng thái của node bằng cách sử dụng
+     * isSelected()và sau đó chuyển nó sang engine. Để thể hiện hình ảnh tốt hơn của video bị
+     * tắt tiếng, chúng ta ẩn/hiển thị videoSurface.
+     */
     public void onVideoMuteClicked(View view) {
         ImageView btn = (ImageView) view;
         if (btn.isSelected()) {

@@ -10,6 +10,9 @@ import android.widget.RadioButton;
 
 import nhom10.com.socialproject.R;
 
+/**
+ * Lớp chọn chế độ cho post mỗi khi người dùng đăng post
+ */
 public class PrivacyActivity extends AppCompatActivity implements View.OnClickListener {
 
     private RadioButton rdPublic, rdFriendsAll, rdFriendsExcept, rdOnlyMe;
@@ -25,6 +28,9 @@ public class PrivacyActivity extends AppCompatActivity implements View.OnClickLi
         initializeUI();
     }
 
+    /**
+     * Khời tạo và ánh xạ các views
+     */
     private void initializeUI(){
         toolbar = findViewById(R.id.toolbarAddPost);
         setSupportActionBar(toolbar);
@@ -69,6 +75,9 @@ public class PrivacyActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    /**
+     * Trả về kết quả của chế độ đăng bài
+     */
     private void responseResult(){
         Intent intent = new Intent();
         intent.putExtra("PRIVACY",typeDisplay);

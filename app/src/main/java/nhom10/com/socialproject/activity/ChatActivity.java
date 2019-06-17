@@ -8,6 +8,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.media.MediaCasException;
+import android.media.MediaCasStateException;
+import android.media.MediaCryptoException;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Environment;
@@ -297,29 +300,6 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-
-//        btnSend.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//                if(isVoice){
-//
-//                }else {
-//                    notify = true;
-//                    //Nhận nội dung từ edit text
-//                    String message = edtMessage.getText().toString().trim();
-//
-//                    if (TextUtils.isEmpty(message)) {
-//                        //Handle text is empty
-//                    } else {
-//                        sendMessage(message);
-//                    }
-//                    //Reset edit text
-//                    edtMessage.setText("");
-//                }
-//            }
-//        });
-
         btnSend.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -334,6 +314,7 @@ public class ChatActivity extends AppCompatActivity {
                             mediaRecorder.setOutputFile(outputFileRecord);
                             mediaRecorder.prepare();
                             mediaRecorder.start();
+                            btnSend.setImageResource(R.drawable.ic_recording);
                             Toast.makeText(getApplicationContext(), "Recording...", Toast.LENGTH_LONG).show();
                         } catch (IllegalStateException ise) {
                             Toast.makeText(getApplicationContext(), "Error ise Occurred : " + ise.getMessage(), Toast.LENGTH_LONG).show();
@@ -358,12 +339,17 @@ public class ChatActivity extends AppCompatActivity {
                             //Reset edit text
                             edtMessage.setText("");
                         }else {
-                            mediaRecorder.stop();
-                            mediaRecorder.release();
-                            mediaRecorder = null;
-                            Toast.makeText(getApplicationContext(), "Sending Record", Toast.LENGTH_LONG).show();
-                            sendVoiceMessage();
-                            return true;
+                            btnSend.setImageResource(R.drawable.ic_voice);
+                            try {
+                                mediaRecorder.stop();
+                                mediaRecorder.release();
+                                mediaRecorder = null;
+                                Toast.makeText(getApplicationContext(), "Sending Record", Toast.LENGTH_LONG).show();
+                                sendVoiceMessage();
+                                return true;
+                            }catch (Exception ex){
+                                Toast.makeText(getApplicationContext(), "Record too short", Toast.LENGTH_LONG).show();
+                            }
                         }
                 }
                 return false;

@@ -51,6 +51,8 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
 
     private boolean audioPlaying = false;
 
+    private boolean isImageFitToScreen = false;
+
     private Context mContext;
 
     private List<Chat> chatList;

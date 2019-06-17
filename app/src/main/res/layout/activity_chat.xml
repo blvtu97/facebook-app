@@ -103,7 +103,7 @@
         android:layout_above="@id/chatLayout"
         android:background="@null">
 
-        <nguyenhoangthinh.com.socialproject.widgets.TypingVisualizer
+        <nhom10.com.socialproject.widgets.TypingVisualizer
             android:id="@+id/typingVisualizer"
             android:layout_width="20dp"
             android:layout_height="30dp"

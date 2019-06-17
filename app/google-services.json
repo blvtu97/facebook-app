@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:995514546329:android:943ceb533735e071",
         "android_client_info": {
-          "package_name": "nguyenhoangthinh.com.socialproject"
+          "package_name": "nhom10.com.socialproject"
         }
       },
       "oauth_client": [
@@ -18,7 +18,7 @@
           "client_id": "995514546329-vvv0mumv3ebpgd2pt13kn38gjm891top.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "nguyenhoangthinh.com.socialproject",
+            "package_name": "nhom10.com.socialproject",
             "certificate_hash": "c796ba9ad41be281ec05730b77d249ebc9c6360e"
           }
         },

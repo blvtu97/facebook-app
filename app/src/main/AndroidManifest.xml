@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="nguyenhoangthinh.com.socialproject">
+    package="nhom10.com.socialproject">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -25,18 +25,18 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".activity.VideoCallActivity"></activity>
-        <activity android:name=".activity.ViewCommentPostActivity" />
-        <activity android:name=".activity.ViewImagePostActivity" />
-        <activity android:name=".activity.ProfileActivity" />
-        <activity android:name=".activity.PrivacyActivity" />
-        <activity android:name=".activity.AddPostActivity" />
+        <activity android:name="nhom10.com.socialproject.activity.VideoCallActivity"></activity>
+        <activity android:name="nhom10.com.socialproject.activity.ViewCommentPostActivity" />
+        <activity android:name="nhom10.com.socialproject.activity.ViewImagePostActivity" />
+        <activity android:name="nhom10.com.socialproject.activity.ProfileActivity" />
+        <activity android:name="nhom10.com.socialproject.activity.PrivacyActivity" />
+        <activity android:name="nhom10.com.socialproject.activity.AddPostActivity" />
         <activity
-            android:name=".activity.ChatActivity"
+            android:name="nhom10.com.socialproject.activity.ChatActivity"
             android:theme="@style/AppThemeNo" />
-        <activity android:name=".activity.DashboardActivity" />
-        <activity android:name=".activity.RegisterActivity" />
-        <activity android:name=".activity.MainActivity">
+        <activity android:name="nhom10.com.socialproject.activity.DashboardActivity" />
+        <activity android:name="nhom10.com.socialproject.activity.RegisterActivity" />
+        <activity android:name="nhom10.com.socialproject.activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -45,21 +45,21 @@
         </activity>
 
         <service
-            android:name=".notifications.FirebaseService"
+            android:name="nhom10.com.socialproject.notifications.FirebaseService"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_SERVICE" />
             </intent-filter>
         </service>
-        <service android:name=".notifications.FirebaseMessaging">
+        <service android:name="nhom10.com.socialproject.notifications.FirebaseMessaging">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        <service android:name=".services.SocialServices" />
+        <service android:name="nhom10.com.socialproject.services.SocialServices" />
 
-        <receiver android:name=".activity.DashboardActivity$BroadcastListener" />
+        <receiver android:name="nhom10.com.socialproject.activity.DashboardActivity$BroadcastListener" />
     </application>
 
 </manifest>

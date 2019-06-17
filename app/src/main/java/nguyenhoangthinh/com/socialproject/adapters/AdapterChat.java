@@ -1,9 +1,14 @@
 package nguyenhoangthinh.com.socialproject.adapters;
 
 import android.app.AlertDialog;
+import android.app.DownloadManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Environment;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateFormat;
@@ -81,14 +86,14 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
 
 
     @Override
-    public void onBindViewHolder(@NonNull Holder holder,final int i) {
+    public void onBindViewHolder(@NonNull final Holder holder, final int i) {
 
         final Chat c = chatList.get(i);
-        String message_type = c.getType();
+        final String message_type = c.getType();
 
         Log.d("MY_TAG","onBindViewHolder " + i);
         //get data
-        String message = chatList.get(i).getMessage();
+        final String message = chatList.get(i).getMessage();
         String timestamp = chatList.get(i).getTimestamp();
 
         //format time
@@ -100,12 +105,12 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
         if(message_type.equals("text")) {
             holder.txtMessage.setVisibility(View.VISIBLE);
             holder.imgMessage.setVisibility(View.GONE);
-            //holder.btnAudioMessage.setVisibility(View.GONE);
+            holder.btnAudioMessage.setVisibility(View.GONE);
             holder.txtMessage.setText(message);
         } else if(message_type.equals("image")){
             holder.imgMessage.setVisibility(View.VISIBLE);
             holder.txtMessage.setVisibility(View.GONE);
-            //holder.btnAudioMessage.setVisibility(View.GONE);
+            holder.btnAudioMessage.setVisibility(View.GONE);
             try {
                 //Picasso.get().load(message).into(holder.imgMessage);
                 Glide.with(mContext)
@@ -118,34 +123,47 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
             }catch (Exception e){
                 Toast.makeText(mContext, "Can't load image !", Toast.LENGTH_SHORT).show();
             }
-//        }else if(message_type.equals("audio")){
-//            holder.imgMessage.setVisibility(View.GONE);
-//            holder.txtMessage.setVisibility(View.GONE);
-//            holder.btnAudioMessage.setVisibility(View.INVISIBLE);
-//            holder.btnAudioMessage.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    {
-//                        String url = c.getMessage();
-//                        if(audioPlaying){
-//                            audioPlaying = false;
-//                            v.setBackgroundResource(R.drawable.ic_play);
-//                        }else{
-//                            audioPlaying = true;
-//                            v.setBackgroundResource(R.drawable.ic_stop);
-//                            MediaPlayer mediaPlayer = new MediaPlayer();
-//                            try {
-//                                mediaPlayer.setDataSource(url);
-//                                mediaPlayer.prepare();
-//                                mediaPlayer.start();
-//                                Toast.makeText(mContext, "Playing Audio", Toast.LENGTH_LONG).show();
-//                            } catch (Exception e) {
-//                                // handle exception
-//                            }
-//                        }
-//                    }
-//                }
-//            });
+        }else if(message_type.equals("audio")){
+            holder.imgMessage.setVisibility(View.GONE);
+            holder.txtMessage.setVisibility(View.GONE);
+            holder.btnAudioMessage.setVisibility(View.VISIBLE);
+            holder.btnAudioMessage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    {
+                        String url = c.getMessage();
+                        if(audioPlaying){
+                            audioPlaying = false;
+                            holder.btnAudioMessage.setImageResource(R.drawable.ic_play);
+                        }else{
+                            audioPlaying = true;
+                            holder.btnAudioMessage.setImageResource(R.drawable.ic_stop);
+                            MediaPlayer mediaPlayer = new MediaPlayer();
+                            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                                @Override
+                                public void onCompletion(MediaPlayer mp) {
+                                    audioPlaying = false;
+                                    holder.btnAudioMessage.setImageResource(R.drawable.ic_play);
+                                    mp.stop();
+                                    mp.release();
+                                }
+                            });
+                            try {
+                                mediaPlayer.setDataSource(url);
+                                mediaPlayer.prepare();
+                                mediaPlayer.start();
+                                Toast.makeText(mContext, "Playing Audio", Toast.LENGTH_LONG).show();
+                            } catch (Exception e) {
+                                audioPlaying = false;
+                                holder.btnAudioMessage.setImageResource(R.drawable.ic_play);
+                                mediaPlayer.stop();
+                                mediaPlayer.release();
+                                mediaPlayer = null;
+                            }
+                        }
+                    }
+                }
+            });
         }
         holder.txtTimeSend.setText(dateTime);
         try{
@@ -158,27 +176,64 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
         holder.messageLinearLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle("Delete");
-                builder.setMessage("Do you want delete this message?");
+                if(message_type.equals("text")) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                    builder.setTitle("Delete");
+                    builder.setMessage("Do you want delete this message?");
 
-                //yes button
-                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        deleteMessages(i);
-                    }
-                });
+                    //yes button
+                    builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            deleteMessages(i);
+                        }
+                    });
 
-                //no button
-                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-                builder.create().show();
-                return false;
+                    //no button
+                    builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    builder.create().show();
+                    return true;
+                }else{
+                    String[] actions = {"Save", "Delete"};
+
+                    android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(mContext);
+                    builder.setTitle("Option");
+                    builder.setItems(actions, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            switch (which){
+                                case 0:
+                                    downloadFile(Uri.parse(message), message_type);
+                                    break;
+                                case 1:
+                                    AlertDialog.Builder builderDelete = new AlertDialog.Builder(mContext);
+                                    builderDelete.setTitle("Delete");
+                                    builderDelete.setMessage("Do you want delete this message?");
+                                    builderDelete.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            deleteMessages(i);
+                                        }
+                                    });
+                                    builderDelete.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                        }
+                                    });
+                                    builderDelete.create().show();
+                                    break;
+                            }
+                        }
+                    });
+                    builder.show();
+                    return true;
+                }
             }
         });
 
@@ -195,6 +250,34 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
         }else{
             holder.txtIsSeen.setVisibility(View.GONE);
         }
+    }
+
+    //Cho phép tải ảnh hoặc audio từ tin nhắn
+    private void downloadFile(Uri uri, String type){
+        long lastDownload =-1;
+        String suffixes = "";
+        if(type.equals("image")){
+            suffixes = ".jpg";
+        }else if(type.equals("audio")){
+            suffixes = ".3gp";
+        }
+        else{
+            return;
+        }
+        DownloadManager mgr = null;
+        mgr = (DownloadManager) mContext.getSystemService(Context.DOWNLOAD_SERVICE);
+        Environment
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                .mkdirs();
+
+        lastDownload = mgr.enqueue(new DownloadManager.Request(uri)
+                .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI |
+                        DownloadManager.Request.NETWORK_MOBILE)
+                .setAllowedOverRoaming(false)
+                .setTitle("Downloading "+ type)
+                .setDescription("Downloading, Please Wait...")
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,
+                        SystemClock.currentThreadTimeMillis() + suffixes));
     }
 
     /**
@@ -288,7 +371,7 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
             txtIsSeen   = itemView.findViewById(R.id.txtSeenMessage);
             messageLinearLayout = itemView.findViewById(R.id.messageLayout);
             imgMessage  = itemView.findViewById(R.id.imgMessage);
-            //btnAudioMessage = itemView.findViewById(R.id.btnAudioMessage);
+            btnAudioMessage = itemView.findViewById(R.id.btnAudioMessage);
         }
     }
 }

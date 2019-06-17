@@ -1,15 +1,18 @@
 package nguyenhoangthinh.com.socialproject.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.Service;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.SystemClock;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -35,7 +38,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
-import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -47,13 +49,14 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -77,16 +80,19 @@ import nguyenhoangthinh.com.socialproject.widgets.TypingVisualizer;
 import retrofit2.Call;
 import retrofit2.Callback;
 
-public class ChatActivity extends AppCompatActivity implements View.OnClickListener {
+public class ChatActivity extends AppCompatActivity {
 
     private static final int REQUEST_VIDEO_CALL = 100;
 
     private  static final int GALLERY_PICK = 1;
 
+    private static final int CAMERA_REQUEST_CODE = 10;
+
     private static final int PERMISSION_REQ_ID = 22;
 
     private static final String[] REQUESTED_PERMISSIONS =
-            {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA};
+            {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
+             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     //Firebase
     private FirebaseAuth mAuth;
@@ -154,11 +160,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_chat);
 
         ActivityCompat.requestPermissions(ChatActivity.this, REQUESTED_PERMISSIONS, PERMISSION_REQ_ID);
-        mediaRecorder = new MediaRecorder();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
-        mediaRecorder.setOutputFile(outputFileRecord);
+
 
         initializeUI();
     }
@@ -195,6 +197,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         super.onResume();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void initializeUI(){
 
         android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolBarChat);
@@ -294,55 +297,82 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         });
 
 
-        btnSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                notify = true;
-                //Nhận nội dung từ edit text
-                String message = edtMessage.getText().toString().trim();
-
-                if(TextUtils.isEmpty(message)){
-                    //Handle text is empty
-                }else {
-                    sendMessage(message);
-                }
-                //Reset edit text
-                edtMessage.setText("");
-            }
-        });
-
-//        btnSend.setOnTouchListener(new View.OnTouchListener() {
+//        btnSend.setOnClickListener(new View.OnClickListener() {
 //            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                if(!isVoice) return false;
-//                switch(event.getAction()) {
-//                    case MotionEvent.ACTION_DOWN:
-//                        try {
-//                            mediaRecorder.prepare();
-//                            mediaRecorder.start();
-//                        } catch (IllegalStateException ise) {
-//                            // make something ...
-//                        } catch (IOException ioe) {
-//                            // make something ...
-//                        }
-//                        Toast.makeText(getApplicationContext(), "Recording...", Toast.LENGTH_LONG).show();
-//                        break;
-//                    case MotionEvent.ACTION_UP:
-//                        mediaRecorder.stop();
-//                        mediaRecorder.release();
-//                        mediaRecorder = null;
-//                        break;
+//            public void onClick(View v) {
+//
+//                if(isVoice){
+//
+//                }else {
+//                    notify = true;
+//                    //Nhận nội dung từ edit text
+//                    String message = edtMessage.getText().toString().trim();
+//
+//                    if (TextUtils.isEmpty(message)) {
+//                        //Handle text is empty
+//                    } else {
+//                        sendMessage(message);
+//                    }
+//                    //Reset edit text
+//                    edtMessage.setText("");
 //                }
-//                sendVoiceMessage();
-//                return false;
 //            }
 //        });
+
+        btnSend.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch(event.getAction()){
+                    case MotionEvent.ACTION_DOWN:
+                        if(!isVoice) return false;
+                        try {
+                            mediaRecorder = new MediaRecorder();
+                            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                            mediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+                            mediaRecorder.setOutputFile(outputFileRecord);
+                            mediaRecorder.prepare();
+                            mediaRecorder.start();
+                            Toast.makeText(getApplicationContext(), "Recording...", Toast.LENGTH_LONG).show();
+                        } catch (IllegalStateException ise) {
+                            Toast.makeText(getApplicationContext(), "Error ise Occurred : " + ise.getMessage(), Toast.LENGTH_LONG).show();
+                        } catch (IOException ioe) {
+                            mediaRecorder.stop();
+                            mediaRecorder.release();
+                            mediaRecorder = null;
+                            Toast.makeText(getApplicationContext(), "Error ioe Occurred : " + ioe.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        if(!isVoice){
+                            notify = true;
+                            //Nhận nội dung từ edit text
+                            String message = edtMessage.getText().toString().trim();
+
+                            if (TextUtils.isEmpty(message)) {
+                                //Handle text is empty
+                            } else {
+                                sendMessage(message);
+                            }
+                            //Reset edit text
+                            edtMessage.setText("");
+                        }else {
+                            mediaRecorder.stop();
+                            mediaRecorder.release();
+                            mediaRecorder = null;
+                            Toast.makeText(getApplicationContext(), "Sending Record", Toast.LENGTH_LONG).show();
+                            sendVoiceMessage();
+                            return true;
+                        }
+                }
+                return false;
+            }
+        });
 
         btnSendImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String[] actions = {"Audio", "Picture", "Location", "Video"};
+                String[] actions = {"Location", "Picture", "Camera"};
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(ChatActivity.this);
                 builder.setTitle("Option");
@@ -361,8 +391,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                                 startActivityForResult(Intent.createChooser(galleryIntent, "SELECT IMAGE"), GALLERY_PICK);
                                 break;
                             case 2:
-                                break;
-                            case 3:
+                                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                startActivityForResult(intent,CAMERA_REQUEST_CODE);
                                 break;
                         }
                     }
@@ -532,7 +562,8 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         final String nameRandom = myUid + hisUid + SystemClock.currentThreadTimeMillis() + ".3gp";
         final StorageReference filepath = firebaseStorage.child("Message_Audio").child(nameRandom);
 
-        filepath.putFile(Uri.parse(outputFileRecord)).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+        Uri uriAudio = Uri.fromFile(new File(outputFileRecord).getAbsoluteFile());
+        filepath.putFile(uriAudio).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                 if(task.isSuccessful()){
@@ -561,6 +592,60 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                                     User user = dataSnapshot.getValue(User.class);
                                     if (notify) {
                                         sendNotifications(hisUid, user.getName(), "You have an audio message");
+                                    }
+                                    notify = false;
+                                }
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception exception) {
+                            Toast.makeText(ChatActivity.this, "Error : " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    private void sendImageMessage(Uri imageUri){
+        final String mCurrentUserId = mAuth.getCurrentUser().getUid();
+        final String nameRandom = myUid + hisUid + SystemClock.currentThreadTimeMillis() + ".jpg";
+
+        final StorageReference filepath = firebaseStorage.child("Message_Images").child(nameRandom);
+        filepath.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                if(task.isSuccessful()){
+                    filepath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            String timestamp = String.valueOf(System.currentTimeMillis());
+
+                            DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+
+                            Map messageMap = new HashMap();
+                            messageMap.put("sender", mCurrentUserId);
+                            messageMap.put("receiver", hisUid);
+                            messageMap.put("message", uri.toString());
+                            messageMap.put("timestamp", timestamp);
+                            messageMap.put("isSeen", false);
+                            messageMap.put("type", "image");
+
+                            reference.child("Chats").push().setValue(messageMap);
+
+                            DatabaseReference dataRef =
+                                    FirebaseDatabase.getInstance().getReference("User").child(myUid);
+                            dataRef.addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    User user = dataSnapshot.getValue(User.class);
+                                    if (notify) {
+                                        sendNotifications(hisUid, user.getName(), "You have a image message");
                                     }
                                     notify = false;
                                 }
@@ -677,11 +762,6 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onClick(View v) {
-
-    }
-
     private void setupToCallVideo() {
 
         // Tìm phòng
@@ -733,6 +813,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 
         super.onActivityResult(requestCode, resultCode, data);
+
         if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_VIDEO_CALL){
             // Cuộc gọi kết thúc
             FirebaseDatabase.getInstance()
@@ -757,68 +838,29 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     });
 
-        }else if(resultCode == RESULT_OK && requestCode == GALLERY_PICK){
-
-            final String mCurrentUserId = mAuth.getCurrentUser().getUid();
-
-            Uri imageUri = null;
+        }else if(resultCode == RESULT_OK && (requestCode == GALLERY_PICK )){
             if (data != null) {
-                imageUri = data.getData();
-
-                final String nameRandom = myUid + hisUid + SystemClock.currentThreadTimeMillis() + ".jpg";
-
-                final StorageReference filepath = firebaseStorage.child("Message_Images").child(nameRandom);
-                filepath.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                        if(task.isSuccessful()){
-                            filepath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                @Override
-                                public void onSuccess(Uri uri) {
-                                    String timestamp = String.valueOf(System.currentTimeMillis());
-
-                                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-
-                                    Map messageMap = new HashMap();
-                                    messageMap.put("sender", mCurrentUserId);
-                                    messageMap.put("receiver", hisUid);
-                                    messageMap.put("message", uri.toString());
-                                    messageMap.put("timestamp", timestamp);
-                                    messageMap.put("isSeen", false);
-                                    messageMap.put("type", "image");
-
-                                    reference.child("Chats").push().setValue(messageMap);
-
-                                DatabaseReference dataRef =
-                                        FirebaseDatabase.getInstance().getReference("User").child(myUid);
-                                dataRef.addValueEventListener(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                        User user = dataSnapshot.getValue(User.class);
-                                        if (notify) {
-                                            sendNotifications(hisUid, user.getName(), "You have a image message");
-                                        }
-                                        notify = false;
-                                    }
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                                    }
-                                });
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception exception) {
-                                    Toast.makeText(ChatActivity.this, "Error : " + exception.getMessage(), Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        }
-                    }
-                });
-
+                Uri imageUri = data.getData();
+                sendImageMessage(imageUri);
             }else {
                 Toast.makeText(ChatActivity.this, "Can't take image !", Toast.LENGTH_SHORT).show();
             }
+        }else if(resultCode == RESULT_OK && (requestCode == CAMERA_REQUEST_CODE )){
+            if (data != null) {
+                Bitmap photo = (Bitmap) data.getExtras().get("data");
+                Uri photoUri = getImageUri(getApplicationContext(), photo);
+                sendImageMessage(photoUri);
+            }else {
+                Toast.makeText(ChatActivity.this, "Can't take photo !", Toast.LENGTH_SHORT).show();
+            }
         }
     }
+
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+        return Uri.parse(path);
+    }
 }
+

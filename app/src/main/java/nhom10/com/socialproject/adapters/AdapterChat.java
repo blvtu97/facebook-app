@@ -8,8 +8,8 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -73,7 +73,6 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
     @NonNull
     @Override
     public Holder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        Log.d("MY_TAG","onCreateViewHolder " + i);
         if(i == MESSAGE_TYPE_ON_RIGHT){
             View view = LayoutInflater.from(mContext)
                     .inflate(R.layout.row_contains_chat_right,viewGroup,false);
@@ -196,7 +195,7 @@ public class AdapterChat extends RecyclerView.Adapter<AdapterChat.Holder> {
                 }else{
                     String[] actions = {"Save", "Delete"};
 
-                    android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(mContext);
+                    androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(mContext);
                     builder.setTitle("Option");
                     builder.setItems(actions, new DialogInterface.OnClickListener() {
                         @Override

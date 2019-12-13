@@ -7,17 +7,17 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomSheetBehavior;
-import android.support.design.widget.TabLayout;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.tabs.TabLayout;
+import androidx.viewpager.widget.ViewPager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SwitchCompat;
-import android.support.v7.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.appcompat.widget.Toolbar;
 import android.widget.CompoundButton;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -88,9 +88,7 @@ public class DashboardActivity extends AppCompatActivity
         if(!SocialNetwork.isReceiveDataSuccessfully()){
             SocialNetwork.getDatabaseFromFirebase();
         }
-
         initializeUI();
-
     }
 
     @Override
@@ -178,6 +176,12 @@ public class DashboardActivity extends AppCompatActivity
                 },800);
             }
         });
+    }
+
+    private void refreshApp() {
+        Intent i = new Intent(getApplicationContext(), DashboardActivity.class);
+        startActivity(i);
+        finish();
     }
 
     public void updateToken(String token){
@@ -300,6 +304,7 @@ public class DashboardActivity extends AppCompatActivity
      * Phương thức đăng kí nhận thông báo từ dịch vụ để xử lý khi dữ liệu trên fire base thay đổi
      */
     private void registerBroadcast() {
+
         broadcastListener = new BroadcastListener();
         IntentFilter intentFilter = new IntentFilter("metaChanged.Broadcast");
         registerReceiver(broadcastListener, intentFilter);
@@ -328,14 +333,16 @@ public class DashboardActivity extends AppCompatActivity
                 Comment comment = new Comment(pId, "", "", mUser.getUid());
                 commentList.add(comment);
 
-                if(adapterComment == null) {
+                //if(adapterComment == null) {
                     adapterComment = new AdapterComment(DashboardActivity.this, commentList);
                     adapterComment.setCommentList(commentList);
                     recyclerViewComments.setAdapter(adapterComment);
-                }else{
-                    adapterComment.setCommentList(commentList);
                     adapterComment.notifyDataSetChanged();
-                }
+                /*}else{
+                    adapterComment = new AdapterComment(DashboardActivity.this, commentList);
+                   // adapterComment.setCommentList(commentList);
+                    adapterComment.notifyDataSetChanged();
+                }*/
 
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             }

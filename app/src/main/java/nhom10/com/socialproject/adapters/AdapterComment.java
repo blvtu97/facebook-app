@@ -4,8 +4,8 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,6 +58,7 @@ public class AdapterComment extends RecyclerView.Adapter<AdapterComment.Holder> 
     public Holder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         //Tạo row news feed
 
+
         View view = LayoutInflater.from(mContext).inflate(R.layout.row_comment,
                 viewGroup, false);
         return new Holder(view);
@@ -68,14 +69,21 @@ public class AdapterComment extends RecyclerView.Adapter<AdapterComment.Holder> 
     public void onBindViewHolder(@NonNull final Holder holder, final int i) {
         //Nếu là row dùng để comment
         if (i == (commentList.size() - 1)) {
+            try {
+                Picasso
+                        .get()
+                        .load(SocialNetwork.findImageById(FirebaseAuth.getInstance().getCurrentUser().getUid()))
+                        .placeholder(R.drawable.ic_user_anonymous).into(holder.imgProfile);
+            }catch (Exception e){
 
+            }
             holder.txtName.setVisibility(View.GONE);
             holder.btnSend.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if(holder.edtComment.getText().toString().trim().equals("")){
                         Toast.makeText(mContext,
-                                "Content is not allowed to be empty!",
+                                "You have not entered your message!",
                                 Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -158,7 +166,7 @@ public class AdapterComment extends RecyclerView.Adapter<AdapterComment.Holder> 
     private void showDeleteDialog(final String cTime, final String pId, final String uid) {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         builder.setTitle("Notification");
-        builder.setMessage("Do you want delete comment this ?");
+        builder.setMessage("Are you sure you want to delete this comment?");
 
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override

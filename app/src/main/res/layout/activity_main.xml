@@ -25,7 +25,7 @@
             android:src="@drawable/hcmute_logo" />
 
         <!--Input email-->
-        <android.support.design.widget.TextInputLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/titleEmail"
             android:layout_marginStart="20dp"
             android:layout_marginRight="20dp"
@@ -37,16 +37,16 @@
             android:layout_above="@id/titlePassword"
             android:layout_marginLeft="20dp">
 
-            <android.support.design.widget.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edtEmail"
                 android:layout_width="match_parent"
                 android:layout_height="46dp"
                 android:hint="Email"
                 android:inputType="textEmailAddress" />
-        </android.support.design.widget.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
         <!--Input password-->
-        <android.support.design.widget.TextInputLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/titlePassword"
             android:layout_centerHorizontal="true"
             android:layout_marginStart="20dp"
@@ -59,7 +59,7 @@
             app:passwordToggleEnabled="true"
             android:layout_marginLeft="20dp">
             <!--Input password-->
-            <android.support.design.widget.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edtPassword"
                 android:inputType="textPassword"
                 android:hint="Password"
@@ -69,7 +69,7 @@
                 android:layout_centerVertical="true"
                 android:layout_marginBottom="15dp"
                 />
-        </android.support.design.widget.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
         <!--Register-->
         <Button
@@ -148,8 +148,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
-                android:text="Welcome Hcmute"
-                android:textSize="23sp"
+                android:text="HCMUTE SOCIAL"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/white"/>
         </LinearLayout>

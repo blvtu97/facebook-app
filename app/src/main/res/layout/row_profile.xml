@@ -40,7 +40,7 @@
                     android:layout_marginStart="5dp"
                     android:layout_marginLeft="5dp"
                     android:layout_marginTop="5dp"
-                    android:textColor="#000000"
+                    android:textColor="?attr/textColor"
                     android:text="Name"
                     android:textSize="20sp"/>
 
@@ -52,7 +52,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
                     android:layout_marginLeft="5dp"
-                    android:textColor="#000000"
+                    android:textColor="?attr/textColor"
                     />
 
                 <TextView
@@ -63,17 +63,18 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
                     android:layout_marginLeft="5dp"
-                    android:textColor="#000000"
+                    android:textColor="?attr/textColor"
                     />
 
             </LinearLayout>
         </LinearLayout>
 
         <!--Bottom navigation: show menu-->
-        <android.support.design.widget.BottomNavigationView
+        <com.google.android.material.bottomnavigation.BottomNavigationView
             android:layout_marginTop="5dp"
             android:layout_below="@id/linearLayout"
-            android:backgroundTint="#ffff"
+            android:backgroundTint="?attr/backgroundColor"
+            app:itemTextColor="?attr/textColor"
             android:id="@+id/navigationView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

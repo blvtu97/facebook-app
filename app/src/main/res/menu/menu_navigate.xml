@@ -20,5 +20,5 @@
     <item
         android:id="@+id/itemNotification"
         android:title="Chats"
-        android:icon="@drawable/ic_bell"/>
+        android:icon="@drawable/ic_bell2"/>
 </menu>

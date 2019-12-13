@@ -8,23 +8,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.media.MediaCasException;
-import android.media.MediaCasStateException;
-import android.media.MediaCryptoException;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -39,7 +36,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -57,13 +53,13 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -80,12 +76,11 @@ import nhom10.com.socialproject.notifications.Data;
 import nhom10.com.socialproject.notifications.Response;
 import nhom10.com.socialproject.notifications.Sender;
 import nhom10.com.socialproject.notifications.Token;
-import nhom10.com.socialproject.services.SocialNetwork;
 import nhom10.com.socialproject.widgets.TypingVisualizer;
 import retrofit2.Call;
 import retrofit2.Callback;
 
-public class ChatActivity extends AppCompatActivity {
+public class    ChatActivity extends AppCompatActivity {
 
     private static final int REQUEST_VIDEO_CALL = 100;
 
@@ -204,7 +199,7 @@ public class ChatActivity extends AppCompatActivity {
     @SuppressLint("ClickableViewAccessibility")
     private void initializeUI(){
 
-        android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolBarChat);
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolBarChat);
         setSupportActionBar(toolbar);
         toolbar.setTitle("");
         ActionBar ab = getSupportActionBar();
@@ -315,12 +310,12 @@ public class ChatActivity extends AppCompatActivity {
                             btnSend.setImageResource(R.drawable.ic_recording);
                             Toast.makeText(getApplicationContext(), "Recording...", Toast.LENGTH_LONG).show();
                         } catch (IllegalStateException ise) {
-                            Toast.makeText(getApplicationContext(), "Error ise Occurred : " + ise.getMessage(), Toast.LENGTH_LONG).show();
+                            //Toast.makeText(getApplicationContext(), "Error ise Occurred : " + ise.getMessage(), Toast.LENGTH_LONG).show();
                         } catch (IOException ioe) {
                             mediaRecorder.stop();
                             mediaRecorder.release();
                             mediaRecorder = null;
-                            Toast.makeText(getApplicationContext(), "Error ioe Occurred : " + ioe.getMessage(), Toast.LENGTH_LONG).show();
+                            //Toast.makeText(getApplicationContext(), "Error ioe Occurred : " + ioe.getMessage(), Toast.LENGTH_LONG).show();
                         }
                         return true;
                     case MotionEvent.ACTION_UP:
@@ -480,13 +475,14 @@ public class ChatActivity extends AppCompatActivity {
                         chatList.add(chat);
                     }
                 }
+                Collections.reverse((chatList));
                 if(adapterChat == null){
                     adapterChat = new AdapterChat(ChatActivity.this,chatList,hisImage);
                     recyclerView.setAdapter(adapterChat);
                 }else{
                     adapterChat.setChatList(chatList);
                     adapterChat.notifyDataSetChanged();
-                }
+                };
 
             }
 
@@ -597,7 +593,7 @@ public class ChatActivity extends AppCompatActivity {
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception exception) {
-                            Toast.makeText(ChatActivity.this, "Error : " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(ChatActivity.this, "Error : " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
@@ -654,7 +650,7 @@ public class ChatActivity extends AppCompatActivity {
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception exception) {
-                            Toast.makeText(ChatActivity.this, "Error : " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(ChatActivity.this, "Error : " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
@@ -809,7 +805,7 @@ public class ChatActivity extends AppCompatActivity {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Toast.makeText(ChatActivity.this,"Not call",Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(ChatActivity.this,"Not call",Toast.LENGTH_SHORT).show();
                     }
                 });
     }

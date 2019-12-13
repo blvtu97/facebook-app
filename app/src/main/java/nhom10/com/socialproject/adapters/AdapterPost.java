@@ -4,9 +4,9 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.view.Gravity;
@@ -220,6 +220,14 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.Holder> {
             });
 
         } else {
+            try {
+                Picasso
+                        .get()
+                        .load(SocialNetwork.findImageById(FirebaseAuth.getInstance().getCurrentUser().getUid()))
+                        .placeholder(R.drawable.ic_user_anonymous).into(holder.btnViewProfile);
+            }catch (Exception e){
+
+            }
             holder.btnViewProfile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
